@@ -1,0 +1,55 @@
+HotS2 [Day 1, 06.11.2024]:
+- Wygląd Skopania
+- Jednostki: fontanna, duży kamień, drzewo
+- Dodatki: kuźnia, kapliczka, brama, palisada
+
+HotS2 [Day 2, 07.11.2024]:
+- Spisanie informacji o podstawowych jednostkach i wyzwalaczach z HotS1
+- Jednostki: Crook, mały kamień
+- Zdolności: Interakcja
+- Schowanie pasków zdrowia niektórych elementów otoczenia
+- Podstawowe zmienne, m.in. Crook[], Players, TOTAL_PLAYERS
+- Utrata głodu i pragnienia
+- Movement detection system
+- Picie wody z fontanny
+- Własne stałe gry i nazwy interfejsu
+
+HotS2 [Day 3, 08.11.2024]:
+- Nowy folder ze skryptem "C:/dev/war3/hots2/"
+- Spisanie informacji o podstawowych itemkach
+- Spisanie statystyk kilku mobów
+- Spawnowanie zwykłych kwiatków, drop pieniążków
+- Drop i jedzenie jabłek (dummy item active)
+- Plik "hots.j": leczenie, głód/pragnienie, interakcja, losowa szansa
+- Podstawowe ustawienia sojuszu
+- Drobne poprawki mapy
+- Zalążek Spawner System "Spawner.j"
+
+HotS2 [Day 4, 09.11.2024]:
+- Bierna regeneracja zdrowia bohaterów
+- Dokończenie spawn system
+- Spawnowanie dżdżownic
+- System doświadczenia, ważony exp
+- Funkcje: CrookAddXP, SetTextTagPlayer, GetRandomCoinId
+- Kolory i atrybuty monet, losowe monety z kwiatków
+
+HotS2 [Day 5, 10.11.2024]:
+- Poprawki błędów z otrzymywaniem doświadczenia (sojusz z Wioską)
+- 4 podstawowe atrybuty: zdolności i powiązane z nimi ulepszenia
+- Mechaniki brutalnej siły, część mechanik silnego ciała i filatelistyki
+- Wygodne tworzenie kolorowych tekstów: TextTag.j
+- Funkcje pomocnicze (Utils.j): zaokrąglanie liczb, %hp jednostki w skali 0-1 [...]
+- Damage event, damage detection
+- Damage indicators: kolorowe napisy otrzymanych obrażeń
+- Napisy pokazujące siłę leczenia
+- Komendy pomocniczne: /level, /r (pokazuje poziomy ulepszeń atrybutów)
+- Zmodernizowana kopia HotS_Announcer z HotS1: Announcer.j
+
+HotS2 [Day 6, 11.11.2024]:
+- Dokończenie i testy Gachi Announcera
+- Poprawny spawn rate robali z kamieni
+- Model jabłka
+- Podnoszenie i upuszczanie robali
+- Opis i możliwość spożycia robali
+- Przyszłościowe poprawki damage detection system
+- Komendy: link start, gachiBASS

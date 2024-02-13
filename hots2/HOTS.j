@@ -31,6 +31,15 @@ library HOTS requires Utils, TextTag, Spawner
 		local integer id = GetUnitTypeId(u)
 		return LoadReal(udg_Worm_Hash, id, StringHash("heal")) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, StringHash("heall"))
 	endfunction
+	
+
+	// Displays warning texttag above unit
+	public function UnitWarn takes unit u, string text returns texttag
+	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, COLOR_ID_WARNING)
+	    call SetTextTagVelocityBJ(tt, 60, 90)
+	    call SetTextTagFadeSpan(tt, 1.0, 3.0)
+	    return tt
+	endfunction
 
 
 	function GetDamageTextColor takes unit source, unit target returns integer
