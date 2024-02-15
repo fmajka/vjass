@@ -31,11 +31,36 @@ library HOTS requires Utils, TextTag, Spawner
 		local integer id = GetUnitTypeId(u)
 		return LoadReal(udg_Worm_Hash, id, StringHash("heal")) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, StringHash("heall"))
 	endfunction
-	
+
+
+	// Sound
+	function UnitMakeSound takes unit u, string path returns nothing
+		local sound sfx = null
+		if not IsUnitVisible(u, PLAYER_VILLAGE) then
+			return
+		endif
+
+		//"war3mapImported\\drincc.mp3"
+		set sfx = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON")
+	    call SetSoundDuration(sfx, GetSoundFileDuration(path))
+	    call SetSoundChannel(sfx, 0)
+	    call SetSoundVolume(sfx, 127)
+	    call SetSoundPitch(sfx, 1.0)
+	    call SetSoundDistances(sfx, 600.0, 10000.0)
+	    call SetSoundDistanceCutoff(sfx, 3000.0)
+	    call SetSoundConeAngles(sfx, 0.0, 0.0, 127)
+	    call SetSoundConeOrientation(sfx, 0.0, 0.0, 0.0)
+
+		call AttachSoundToUnit(sfx, u)
+		call StartSound(sfx)
+		call KillSoundWhenDone(sfx)
+		set sfx = null
+	endfunction
+
 
 	// Displays warning texttag above unit
-	public function UnitWarn takes unit u, string text returns texttag
-	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, COLOR_ID_WARNING)
+	function UnitWarn takes unit u, string text returns texttag
+	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_ID_WARNING)
 	    call SetTextTagVelocityBJ(tt, 60, 90)
 	    call SetTextTagFadeSpan(tt, 1.0, 3.0)
 	    return tt
@@ -85,7 +110,7 @@ library HOTS requires Utils, TextTag, Spawner
 	    call SetUnitState(u, UNIT_STATE_LIFE, health + heal)
 
 	    // TODO: show floating health text
-	    if showText and IsUnitVisible(u, PLAYER_VILLAGE) then
+	    if showText and heal > 0.5 and IsUnitVisible(u, PLAYER_VILLAGE) then
 			set tt = CreateTextTagUnitColor(I2S(R2IR(heal)), u, GetRandomReal(15, 45), 7 * (1 + 0.01 * heal), TextTag_COLOR_ID_GREEN)
 			call SetTextTagVelocityBJ(tt, 40, 90)
 			call SetTextTagFadeSpan(tt, 1.0, 2.5)
@@ -122,11 +147,21 @@ library HOTS requires Utils, TextTag, Spawner
 
 		set tt = CreateTextTagUnitColor("+" + I2S(xp) + "xp!", u, 30, 7 * (1 + 0.01 * I2R(xp)), -1)
 	    call SetTextTagVelocityBJ(tt, 32, 90)
-	    call SetTextTagFadeSpan(tt, 1.5, 3.0)
+	    call SetTextTagFadeSpan(tt, 2.0, 3.5)
 	    call SetTextTagPlayer(tt, GetOwningPlayer(u))
 
 		call AddHeroXP(u, xp, true)
 	endfunction
+
+
+	function GetSpellDamage takes unit u returns real
+		local real base = BlzGetUnitBaseDamage(u, 1) + GetRandomInt(1, BlzGetUnitDiceSides(u, 1))
+		set base = base * (1 + 0.15 * GetPlayerAttr(GetOwningPlayer(u), ATTR_W))
+		if IsUnitType(u, UNIT_TYPE_HERO) then
+			return GetHeroLevel(u) + base
+		endif
+		return GetUnitLvl(u) + base
+    endfunction
 
 
 	function InteractUnit takes unit u returns nothing

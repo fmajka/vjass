@@ -1,9 +1,9 @@
-HotS2 [Day 1, 06.11.2024]:
+HotS2 [Day 1, 06.02.2024]:
 - Wygląd Skopania
 - Jednostki: fontanna, duży kamień, drzewo
 - Dodatki: kuźnia, kapliczka, brama, palisada
 
-HotS2 [Day 2, 07.11.2024]:
+HotS2 [Day 2, 07.02.2024]:
 - Spisanie informacji o podstawowych jednostkach i wyzwalaczach z HotS1
 - Jednostki: Crook, mały kamień
 - Zdolności: Interakcja
@@ -14,7 +14,7 @@ HotS2 [Day 2, 07.11.2024]:
 - Picie wody z fontanny
 - Własne stałe gry i nazwy interfejsu
 
-HotS2 [Day 3, 08.11.2024]:
+HotS2 [Day 3, 08.02.2024]:
 - Nowy folder ze skryptem "C:/dev/war3/hots2/"
 - Spisanie informacji o podstawowych itemkach
 - Spisanie statystyk kilku mobów
@@ -25,7 +25,7 @@ HotS2 [Day 3, 08.11.2024]:
 - Drobne poprawki mapy
 - Zalążek Spawner System "Spawner.j"
 
-HotS2 [Day 4, 09.11.2024]:
+HotS2 [Day 4, 09.02.2024]:
 - Bierna regeneracja zdrowia bohaterów
 - Dokończenie spawn system
 - Spawnowanie dżdżownic
@@ -33,7 +33,7 @@ HotS2 [Day 4, 09.11.2024]:
 - Funkcje: CrookAddXP, SetTextTagPlayer, GetRandomCoinId
 - Kolory i atrybuty monet, losowe monety z kwiatków
 
-HotS2 [Day 5, 10.11.2024]:
+HotS2 [Day 5, 10.02.2024]:
 - Poprawki błędów z otrzymywaniem doświadczenia (sojusz z Wioską)
 - 4 podstawowe atrybuty: zdolności i powiązane z nimi ulepszenia
 - Mechaniki brutalnej siły, część mechanik silnego ciała i filatelistyki
@@ -45,7 +45,7 @@ HotS2 [Day 5, 10.11.2024]:
 - Komendy pomocniczne: /level, /r (pokazuje poziomy ulepszeń atrybutów)
 - Zmodernizowana kopia HotS_Announcer z HotS1: Announcer.j
 
-HotS2 [Day 6, 11.11.2024]:
+HotS2 [Day 6, 11.02.2024]:
 - Dokończenie i testy Gachi Announcera
 - Poprawny spawn rate robali z kamieni
 - Model jabłka
@@ -53,3 +53,18 @@ HotS2 [Day 6, 11.11.2024]:
 - Opis i możliwość spożycia robali
 - Przyszłościowe poprawki damage detection system
 - Komendy: link start, gachiBASS
+
+Hots2 [Day 7, 13.02.2024]:
+- Weapon system z parametrami: dmg, dicesides, range, interval, sound, attachment
+- 2 rodzaje broni: Patyk, Pochodnia
+- Drop patyków z drzew
+
+HotS2 [Day 8, 15.02.2024]:
+- Możliwość przypisania zdolności do broni w WeaponSystem
+- Generowanie many przy zadawaniu obrażeń
+- Filtrowanie jednostek na obszarze: Combat.j
+- Pomocnicze funkcje matematyczne: Math.j
+- Zdolność: Empowered Strike (Patyk)
+- Efekty i dźwięki zdolności (od teraz może odtwarzać wiele kopii dźwięku na raz!)
+- Skalowanie generowanej many i obrażeń zdolności z poziomem Władania Bronią
+- Dodatkowe zdrowie za każdy zdobyty poziom
