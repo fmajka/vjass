@@ -24,7 +24,7 @@ library Weapon initializer init
 		public integer COUNT = 0
 		public integer array ID_ARR // <-- Stores weapon item IDs
 
-		// Item IDs
+		// Weapon item IDs
 		public integer ITEM_STICK = 'I006'
 		public integer ITEM_TORCH = 'I007'
 	endglobals
@@ -56,8 +56,14 @@ library Weapon initializer init
 		// Args: id, damage, diceSides, rangeLevel, intervalRatio, weaponTypeId, attachmentId, name (crook postfix)
 		call InitWeapon(ITEM_STICK, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00A', "z Patykiem")
 		call WeaponAddSpell(ITEM_STICK, 'A00C')
-		call InitWeapon(ITEM_TORCH, 1, 2, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', "z Pochodnią")
+		call InitWeapon(ITEM_TORCH, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', "z Pochodnią")
 		call WeaponAddSpell(ITEM_TORCH, 'A00C')
+		call WeaponAddSpell(ITEM_TORCH, 'A00E')
+	endfunction
+
+
+	public function GetUnitWeapon takes unit u returns item
+ 		return LoadItemHandle(Hash, GetHandleId(u), KeyWeapon)
 	endfunction
 
 
@@ -67,7 +73,7 @@ library Weapon initializer init
 		local boolean isHero = IsUnitType(u, UNIT_TYPE_HERO)
 		local integer count
 
-		local item currentWeapon = LoadItemHandle(Hash, unitId, KeyWeapon)
+		local item currentWeapon = GetUnitWeapon(u)
 		local integer weaponId = GetItemTypeId(currentWeapon)
 
 		// Weapon stats
@@ -139,6 +145,13 @@ library Weapon initializer init
 		if isHero then
 			call SetPlayerTechResearched(p, TECH_ATTACK_RANGE, range)
 			call BlzSetUnitName(u, name)
+		endif
+
+		// Exception - light system update
+		if GetItemTypeId(currentWeapon) == ITEM_TORCH or GetItemTypeId(weapon) == ITEM_TORCH then
+			set udg_Light_Unit = u
+			set udg_Light_Event = 1
+			call BJDebugMsg("After udg_Light_Event = 1")
 		endif
 
 		set currentWeapon = null

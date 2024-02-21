@@ -125,10 +125,11 @@ library Announcer initializer init
 
 	public function UnitBurned takes unit u returns nothing
 		local integer id = GetPlayerId(GetOwningPlayer(u))
-		set u = udg_Crook[id]
+		local integer crookId = id + 1
+		set u = udg_Crook[crookId]
 
 		// Killer wasn't one of the players
-		if id >= udg_TOTAL_PLAYERS then
+		if crookId > udg_TOTAL_PLAYERS then
 			return
 		endif
 

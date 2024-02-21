@@ -136,7 +136,7 @@ library Combat initializer init requires Math
         return dmgAngle
     endfunction
 
-    // Cleave...
+    // Difference between caster's facing and angle between units
     public function GetCleaveAngle takes unit source, unit target returns real
         // TODO: math func?
         local real dmgAngle = AngleBetweenUnits(source, target)

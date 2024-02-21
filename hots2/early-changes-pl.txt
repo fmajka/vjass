@@ -68,3 +68,31 @@ HotS2 [Day 8, 15.02.2024]:
 - Efekty i dźwięki zdolności (od teraz może odtwarzać wiele kopii dźwięku na raz!)
 - Skalowanie generowanej many i obrażeń zdolności z poziomem Władania Bronią
 - Dodatkowe zdrowie za każdy zdobyty poziom
+
+HotS2 [Day 9, 18.02.2024]:
+- Jednostki: latarnia, woźny, dummy casterzy
+- Podpalanie przeciwników pochodnią
+- Zapalanie latarni interakcją trzymając pochodnię w ręku
+- Czas świecenia latarni bazowany na timerach
+- Funkcje pomocnicze do spawnowanie dummy casterów: Dummy.j
+- Tekst announcera po spaleniu przeciwnika
+
+HotS2 [Day 10, 19.02.2024]:
+- Możliwość zapalania patyków przy świecących latarniach
+- Akcje rozłożone w czasie bazowane na timerach: Timer.j
+- Woźny poprawnie zapala wszystkie latarnie
+- Nadpisywanie animacji poprzez 0.00s timer
+- Cykl życia woźnego
+
+HotS2 [Day 11, 20.02.2024]:
+- Przedmioty: BePower
+- System buffów: Buff.j
+- Pierwszy buff: Sugar Rush
+- Zwiększanie zasiegu widzenia po zaekwipowaniu pochodni
+
+HotS2 [Day 12, 21.02.2024]:
+- System oświetlenia: Light.j
+- System oświetlenia zwiększa zasięg widzenia tylko w nocy
+- Light_Event... (wyzwalacz śledzący stan zmiennej rzeczywistej)
+- Zdolność disarm uniemożliwiająca jednostce atakowanie
+- Drobne poprawki i usprawnienia

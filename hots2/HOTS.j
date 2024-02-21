@@ -5,35 +5,42 @@ library HOTS requires Utils, TextTag, Spawner
 		public player PLAYER_WORMS = Player(11) // Number 12
 		public player PLAYER_FLORA = Player(12) // Number 13
 
-		// TODO: change ID to on-fire dummy caster
-		public integer UNIT_TYPE_FIRE = 'h000'
+		public integer UNIT_TYPE_FIRE = 'h005'
+
+		public integer ABILITY_LIGHT = 'A00H'
+		public integer ABILITY_DISARM = 'A00K'
 
 		public integer ATTR_Q = 0
 		public integer ATTR_W = 1
 		public integer ATTR_E = 2
 		public integer ATTR_R = 3
+
+		private integer KeyFood = StringHash("food")
+		private integer KeyFoodL = StringHash("foodl")
+		private integer KeyHeal = StringHash("heal")
+		private integer KeyHealL = StringHash("heall")
 	endglobals
 
 	// Worm API
 	function SetWormIdProps takes integer wormId, integer food, integer foodl, real heal, real heall returns nothing
-		call SaveInteger(udg_Worm_Hash, wormId, StringHash("food"), food)
-		call SaveInteger(udg_Worm_Hash, wormId, StringHash("foodl"), foodl)
-		call SaveReal(udg_Worm_Hash, wormId, StringHash("heal"), heal)
-		call SaveReal(udg_Worm_Hash, wormId, StringHash("heall"), heall)
+		call SaveInteger(udg_Worm_Hash, wormId, KeyFood, food)
+		call SaveInteger(udg_Worm_Hash, wormId, KeyFoodL, foodl)
+		call SaveReal(udg_Worm_Hash, wormId, KeyHeal, heal)
+		call SaveReal(udg_Worm_Hash, wormId, KeyHealL, heall)
 	endfunction
 
 	function GetWormHunger takes unit u returns integer
 		local integer id = GetUnitTypeId(u)
-		return LoadInteger(udg_Worm_Hash, id, StringHash("food")) + GetUnitLvl(u) * LoadInteger(udg_Worm_Hash, id, StringHash("foodl"))
+		return LoadInteger(udg_Worm_Hash, id, KeyFood) + GetUnitLvl(u) * LoadInteger(udg_Worm_Hash, id, KeyFoodL)
 	endfunction
 
 	function GetWormHeal takes unit u returns real
 		local integer id = GetUnitTypeId(u)
-		return LoadReal(udg_Worm_Hash, id, StringHash("heal")) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, StringHash("heall"))
+		return LoadReal(udg_Worm_Hash, id, KeyHeal) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, KeyHealL)
 	endfunction
 
 
-	// Sound
+	// Create and play a new 3D sound for players
 	function UnitMakeSound takes unit u, string path returns nothing
 		local sound sfx = null
 		if not IsUnitVisible(u, PLAYER_VILLAGE) then
@@ -69,7 +76,7 @@ library HOTS requires Utils, TextTag, Spawner
 
 	function GetDamageTextColor takes unit source, unit target returns integer
 		// TODO: block color
-		if GetUnitTypeId(target) == UNIT_TYPE_FIRE then
+		if GetUnitTypeId(source) == UNIT_TYPE_FIRE then
 			return TextTag_COLOR_ID_ORANGE
 		elseif IsUnitAlly(target, PLAYER_VILLAGE) then
 			return TextTag_COLOR_ID_RED
@@ -94,6 +101,11 @@ library HOTS requires Utils, TextTag, Spawner
 	endfunction
 
 
+	function PlayerBuffDuration takes player p, real duration returns real
+		return duration * (1 + 0.1 * GetPlayerAttr(p, ATTR_R))
+	endfunction
+
+
 	function UnitHeal takes unit u, real heal, boolean showText, boolean fromFood returns nothing
 		local texttag tt
 		local real health = GetUnitState(u, UNIT_STATE_LIFE)
@@ -109,7 +121,6 @@ library HOTS requires Utils, TextTag, Spawner
 
 	    call SetUnitState(u, UNIT_STATE_LIFE, health + heal)
 
-	    // TODO: show floating health text
 	    if showText and heal > 0.5 and IsUnitVisible(u, PLAYER_VILLAGE) then
 			set tt = CreateTextTagUnitColor(I2S(R2IR(heal)), u, GetRandomReal(15, 45), 7 * (1 + 0.01 * heal), TextTag_COLOR_ID_GREEN)
 			call SetTextTagVelocityBJ(tt, 40, 90)
@@ -191,6 +202,29 @@ library HOTS requires Utils, TextTag, Spawner
 		else
 			return 'I002'
 		endif
+	endfunction
+
+	/////////////////////
+	// TIMER CALLBACKS //
+	/////////////////////
+
+	public function Lantern_func takes nothing returns nothing
+		local integer keyName = StringHash("lantern")
+		
+		call Timer_TimerEnd(GetExpiredTimer(), keyName) // Sets Timer_T, Timer_U
+
+		call SetUnitAnimation(Timer_U, "death")
+		call GroupRemoveUnit(udg_Lantern_LitGroup, Timer_U)
+	endfunction
+
+	public function WoznyLight_func takes nothing returns nothing
+		local integer keyName = StringHash("woznylight")
+		local integer count
+
+		call Timer_TimerEnd(GetExpiredTimer(), keyName) // Sets Timer_T, Timer_U
+
+		set count = GetUnitUserData(Timer_U)
+		call IssueTargetOrder(Timer_U, "innerfire", udg_Lantern_UnitArr[count])
 	endfunction
 
 endlibrary

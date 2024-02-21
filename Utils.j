@@ -29,4 +29,14 @@ library Utils
 		return UnitInventorySize(u) <= UnitInventoryCount(u)
 	endfunction
 
+	function IsDay takes nothing returns boolean
+		local real t = GetTimeOfDay()
+		return t >= 6.00 and t < 18.00
+	endfunction
+
+	function IsNight takes nothing returns boolean
+		local real t = GetTimeOfDay()
+		return t < 6.00 or t >= 18.00
+	endfunction
+
 endlibrary
