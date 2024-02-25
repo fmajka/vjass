@@ -29,8 +29,6 @@ library Light requires HOTS, Weapon, Utils
 			set lit = true
 		endif
 
-		call BJDebugMsg(GetUnitName(u) + " lit: " + B2S(lit))
-
 		if lit and not IsUnitInGroup(u, Group) then
 			call GroupAddUnit(Group, u)
 			if State then

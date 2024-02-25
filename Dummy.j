@@ -22,9 +22,13 @@ library Dummy
 	// Add given ability to last created caster and order to cast it on the target
 	public function UnitCastWithOrder takes unit target, integer abilityId, string order returns nothing
 		call UnitAddAbility(Caster, abilityId)
-		call BJDebugMsg(GetUnitName(Caster) + " abilityId " + I2S(abilityId) + " level=" + I2S(GetUnitAbilityLevel(Caster, abilityId)))
 		call IssueTargetOrder(Caster, order, target)
-		call BJDebugMsg("orderstring=" + order)
+	endfunction
+
+	public function UnitCastWithOrderLevel takes unit target, integer abilityId, string order, integer level returns nothing
+		call UnitAddAbility(Caster, abilityId)
+		call SetUnitAbilityLevel(Caster, abilityId, level)
+		call IssueTargetOrder(Caster, order, target)
 	endfunction
 
 endlibrary

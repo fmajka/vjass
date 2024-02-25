@@ -151,7 +151,6 @@ library Weapon initializer init
 		if GetItemTypeId(currentWeapon) == ITEM_TORCH or GetItemTypeId(weapon) == ITEM_TORCH then
 			set udg_Light_Unit = u
 			set udg_Light_Event = 1
-			call BJDebugMsg("After udg_Light_Event = 1")
 		endif
 
 		set currentWeapon = null

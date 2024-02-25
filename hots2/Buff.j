@@ -1,6 +1,9 @@
-library Buff initializer init requires Dummy
+library Buff initializer init requires Dummy, HOTS
 
 	globals
+		private hashtable Hash = InitHashtable()
+		public integer KeyRegen = StringHash("regen")
+
 		public real array TimeArr
 		private integer BUFF_COUNT = 0
 		private integer array ABILITY_ARR
@@ -8,6 +11,7 @@ library Buff initializer init requires Dummy
 		private string array ORDER_ARR
 
 		public integer BE_POWER = 0
+		public integer SONIK = 1
 	endglobals
 
 	// Register new buff with corresponding dummy ability and cast order
@@ -21,6 +25,7 @@ library Buff initializer init requires Dummy
 	// Init buff ability array
 	private function init takes nothing returns nothing
 		call AddBuffAbilityOrder('B001', 'A00I', "bloodlust") // BE_POWER = 0
+		call AddBuffAbilityOrder('B002', 'A00L', "innerfire") // SONIK = 1
 	endfunction
 
 	// Called when player's crook drinks a potion...
@@ -33,7 +38,24 @@ library Buff initializer init requires Dummy
 		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
 		call Dummy_CreateTarget(p, u)
 		call Dummy_UnitCastWithOrder(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
-		// Place exceptions right here...
+
+		set p = null
+	endfunction
+
+	// For regeneration buffs
+	public function SetUnitRegenLevel takes unit u, real duration, integer level returns nothing
+		local player p = GetOwningPlayer(u)
+		local integer i = GetPlayerId(p) * BUFF_COUNT + SONIK
+		local integer uid = GetHandleId(u)
+
+		local integer currentLevel = LoadInteger(Hash, uid, KeyRegen)
+		set level = IMaxBJ(level, currentLevel)
+		call SaveInteger(Hash, uid, KeyRegen, level)
+
+		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
+		call Dummy_CreateTarget(p, u)
+		call Dummy_UnitCastWithOrder(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
+		
 
 		set p = null
 	endfunction
@@ -44,6 +66,7 @@ library Buff initializer init requires Dummy
 		local integer buffId
 		local integer i
 		local unit u
+		local integer lvl
 		loop
 			exitwhen playerId == udg_TOTAL_PLAYERS
 
@@ -54,9 +77,20 @@ library Buff initializer init requires Dummy
 				set u = udg_Crook[playerId + 1]
 
 				set TimeArr[i] = TimeArr[i] - dt
-				if TimeArr[i] <= 0.00 and GetUnitAbilityLevel(u, BUFF_ARR[buffId]) > 0 then
-					call UnitRemoveAbility(u, BUFF_ARR[buffId])
-					// Place exceptions right here...
+				if TimeArr[i] <= 0.00 then
+					if GetUnitAbilityLevel(u, BUFF_ARR[buffId]) > 0 then
+						call UnitRemoveAbility(u, BUFF_ARR[buffId])
+						// Place exceptions right here...
+						if buffId == SONIK then
+							call RemoveSavedInteger(Hash, GetHandleId(u), KeyRegen)
+						endif
+					endif
+				else
+					// Regen healing
+					if buffId == SONIK then
+						set lvl = LoadInteger(Hash, GetHandleId(u), KeyRegen)
+						call UnitHeal(u, 0.05*lvl, false, false)
+					endif
 				endif
 
 				set buffId = buffId + 1

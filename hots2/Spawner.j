@@ -85,6 +85,13 @@ library Spawner initializer init
 		call DefineUnitMaxHP('h003', 29, 4)
 		call DefineUnitScale('h003', 0.3, 0.02)
 		call DefineUnitColor('h003', 100, 100, 100, 0, -8, -8)
+
+		// Wolf
+		call DefineUnitBaseDamage('n007', 2, 1)
+		call DefineUnitMaxHP('n007', 20, 4)
+		call DefineUnitScale('n007', 0.36, 0.02)
+		call DefineUnitColor('n007', 100, 100, 100, 0, -3, 0)
+
 	endfunction
 
 endlibrary

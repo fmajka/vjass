@@ -96,3 +96,16 @@ HotS2 [Day 12, 21.02.2024]:
 - Light_Event... (wyzwalacz śledzący stan zmiennej rzeczywistej)
 - Zdolność disarm uniemożliwiająca jednostce atakowanie
 - Drobne poprawki i usprawnienia
+
+HotS2 [Day 13, 22.02.2024]:
+- Przedmioty: Soniki
+- Jednostki: BeFlower
+- Buff regeneracji, poziomy regeneracji
+- Picie soników i regen zdrowia
+- Poprawiono lewitujące kwiatki
+
+HotS [Day 15, 24.02.2024]:
+- Mały updacik ;)
+- Dodano Handlarkę Różnościami; sprzedaje BePower i Soniki
+- Dodano spawnowanie BeFlowerów
+- Jednostki: Wolf; jeszcze nie mogą się spawnować
