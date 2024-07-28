@@ -36,8 +36,9 @@ library Buff initializer init requires Dummy, HOTS
 		local integer i = GetPlayerId(p) * BUFF_COUNT + buffId
 
 		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
-		call Dummy_CreateTarget(p, u)
-		call Dummy_UnitCastWithOrder(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
+		// call Dummy_CreateTarget(p, u)
+		// call Dummy_UnitCastWithOrder(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
+		call Dummy_UnitBuff(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
 
 		set p = null
 	endfunction
@@ -53,8 +54,9 @@ library Buff initializer init requires Dummy, HOTS
 		call SaveInteger(Hash, uid, KeyRegen, level)
 
 		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
-		call Dummy_CreateTarget(p, u)
-		call Dummy_UnitCastWithOrder(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
+		// call Dummy_CreateTarget(p, u)
+		// call Dummy_UnitCastWithOrder(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
+		call Dummy_UnitBuff(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
 		
 
 		set p = null

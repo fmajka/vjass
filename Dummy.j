@@ -1,34 +1,49 @@
 library Dummy
 
 	globals
-		public unit Caster = null
+		public unit lastCaster = null
 
 		// Editable by the user
-		public integer DEFAULT_ID = 'h004'
+		public integer DEFAULT_DUMMY_ID = 'h004'
 	endglobals
 
-	public function CreateIdTarget takes player id, integer dummyId, unit target returns unit
-		set Caster = CreateUnit(id, dummyId, GetUnitX(target), GetUnitY(target), 0)
-		call ShowUnit(Caster, false)
-		call UnitApplyTimedLife(Caster, 'BTLF', 1.0)
-		return Caster
+	private function CreateDummyAtUnit takes player p, integer dummyId, unit u returns boolean
+		if not IsUnitAliveBJ(u) then
+			return false
+		endif
+		set lastCaster = CreateUnit(p, dummyId, GetUnitX(u), GetUnitY(u), 0.0)
+		call ShowUnit(lastCaster, false)
+		call UnitApplyTimedLife(lastCaster, 'BTLF', 1.0)
+		return true
 	endfunction
 
-	// Create the default dummy
-	public function CreateTarget takes player id, unit target returns unit
-		return CreateIdTarget(id, DEFAULT_ID, target)
+	// Creates the default dummy that buffs the target; dummy owner == target owner
+	public function UnitBuff takes unit target, integer abilityId, string order returns unit
+		if not CreateDummyAtUnit(GetOwningPlayer(target), DEFAULT_DUMMY_ID, target) then
+			return null
+		endif
+		call UnitAddAbility(lastCaster, abilityId)
+		call IssueTargetOrder(lastCaster, order, target)
+		return lastCaster
 	endfunction
 
-	// Add given ability to last created caster and order to cast it on the target
-	public function UnitCastWithOrder takes unit target, integer abilityId, string order returns nothing
-		call UnitAddAbility(Caster, abilityId)
-		call IssueTargetOrder(Caster, order, target)
+	// Specifies owner of the dummy
+	public function UnitBuffFromPlayer takes unit target, integer abilityId, string order, player p returns unit
+		if not CreateDummyAtUnit(p, DEFAULT_DUMMY_ID, target) then
+			return null
+		endif
+		call UnitAddAbility(lastCaster, abilityId)
+		call IssueTargetOrder(lastCaster, order, target)
+		return lastCaster
 	endfunction
 
-	public function UnitCastWithOrderLevel takes unit target, integer abilityId, string order, integer level returns nothing
-		call UnitAddAbility(Caster, abilityId)
-		call SetUnitAbilityLevel(Caster, abilityId, level)
-		call IssueTargetOrder(Caster, order, target)
+	// Assumes that specified dummy already has the ability
+	public function UnitBuffFromPlayerDummy takes unit target, string order, player p, integer dummyId returns unit
+		if not CreateDummyAtUnit(p, dummyId, target) then
+			return null
+		endif
+		call IssueTargetOrder(lastCaster, order, target)
+		return lastCaster
 	endfunction
 
 endlibrary

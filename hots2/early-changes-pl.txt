@@ -104,8 +104,17 @@ HotS2 [Day 13, 22.02.2024]:
 - Picie soników i regen zdrowia
 - Poprawiono lewitujące kwiatki
 
-HotS [Day 15, 24.02.2024]:
+HotS [Day 14, 24.02.2024]:
 - Mały updacik ;)
 - Dodano Handlarkę Różnościami; sprzedaje BePower i Soniki
 - Dodano spawnowanie BeFlowerów
 - Jednostki: Wolf; jeszcze nie mogą się spawnować
+
+Bonus [30.05.2024]:
+- Przeniesiono skrypty do innego folderu i zmieniono ścieżki na relatywne
+
+HotS [Day 15, 28.07.2024]:
+- Wielki powrót?!
+- Nieznaczny rewrite skryptów: HOTS.j, Combat.j, Dummy.j
+- Działający spell damage tag
+- Spell patyka slowuje cele

@@ -39,4 +39,8 @@ library Utils
 		return t < 6.00 or t >= 18.00
 	endfunction
 
+	// Creates and immediatelly destroys effect
+	function FlashEffectTarget takes string path, unit target, string attachment returns nothing
+		call DestroyEffect(AddSpecialEffectTarget(path, target, attachment))
+	endfunction
 endlibrary

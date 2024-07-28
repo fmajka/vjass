@@ -3,13 +3,13 @@ library Combat initializer init requires Math
     globals
         private real MAX_COLL_SIZE = 72.0
 
-        private player Filter_player = null
         private real Filter_x = 0.0
         private real Filter_y = 0.0
         private real Filter_radius = 0.0
+        private player Filter_player = null
 
-        private unit GetMainTarget_unit
-        private group GetMainTarget_group = CreateGroup()
+        private unit GroupGetNearestXY_unit
+        private group GroupGetNearestXY_group = CreateGroup()
 
         public boolexpr IN_RANGE
         public boolexpr IN_RANGE_ENEMY
@@ -19,27 +19,24 @@ library Combat initializer init requires Math
     endglobals
 
     // Include collision size for edge-to-edge range checking
-    public function GetMaxRange takes real r returns real
-        return r + MAX_COLL_SIZE
-    endfunction
+    // public function GetMaxRange takes real r returns real
+    //     return r + MAX_COLL_SIZE
+    // endfunction
 
     /////////////
     // FILTERS //
     /////////////
 
-    private function PrepareFilter takes player p, real x, real y, real r returns nothing
-        set Filter_player = p
+    private function PrepareFilter takes real x, real y, real r, player p returns nothing
         set Filter_x = x
         set Filter_y = y
         set Filter_radius = r
+        set Filter_player = p
     endfunction
 
     // Filter for proper range that includes unit's hitbox
     private function filterInRange takes nothing returns boolean
-        local unit f = GetFilterUnit()
-        local boolean test = DistanceBetweenXY(Filter_x, Filter_y, GetUnitX(f), GetUnitY(f)) - BlzGetUnitCollisionSize(f) < Filter_radius
-        set f = null
-        return test
+        return DistanceBetweenXY(Filter_x, Filter_y, GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())) - BlzGetUnitCollisionSize(GetFilterUnit()) < Filter_radius
     endfunction
 
     private function filterInRangeEnemy takes nothing returns boolean
@@ -73,21 +70,15 @@ library Combat initializer init requires Math
     // ENUMS FUNCTIONS //
     /////////////////////
 
-    // Main function that looks for units in range (respects their hitbox)
-    public function GetInRange takes group g, real x, real y, real r returns nothing
-        call PrepareFilter(null, x, y, r)
-        call GroupEnumUnitsInRange(g, x, y, r + MAX_COLL_SIZE, IN_RANGE)
-    endfunction
-
     // Generic function for getting units in range when a player is needed for filtering
-    public function GetPlayerInRangeMatching takes group g, player p, real x, real y, real r, boolexpr filter returns nothing
-        call PrepareFilter(p, x, y, r)
+    function GetInRangePlayerMatching takes group g, real x, real y, real r, player p, boolexpr filter returns nothing
+        call PrepareFilter(x, y, r, p)
         call GroupEnumUnitsInRange(g, x, y, r + MAX_COLL_SIZE, filter)
     endfunction
 
     // Often used for combat
-    public function GetPlayerEnemyInRange takes group g, player p, real x, real y, real r returns nothing
-        call GetPlayerInRangeMatching(g, p, x, y, r, IN_RANGE_ENEMY_ATTACKABLE)
+    function GetInRangePlayerEnemy takes group g, real x, real y, real r, player p returns nothing
+        call GetInRangePlayerMatching(g, x, y, r, p, IN_RANGE_ENEMY_ATTACKABLE)
     endfunction
 
     //////////////////////
@@ -95,60 +86,48 @@ library Combat initializer init requires Math
     //////////////////////
 
     // Returns unit in the group nearest to the specified coordinates
-    public function GetMainTarget takes group g, real x, real y returns unit
+    function GroupGetNearestXY takes group g, real x, real y returns unit
         local unit u
         local real dist
         local real minDist = 99999
-
-        call GroupAddGroup(g, GetMainTarget_group) // <-- It's reversed! Hahah!
-        set GetMainTarget_unit = null
-        
+        call GroupAddGroup(g, GroupGetNearestXY_group) // <-- It's reversed! Hahah!
+        set GroupGetNearestXY_unit = null
         loop
-            set u = FirstOfGroup(GetMainTarget_group)
+            set u = FirstOfGroup(GroupGetNearestXY_group)
             exitwhen u == null
-
             set dist = DistanceBetweenXY(x, y, GetUnitX(u), GetUnitY(u))
             if dist < minDist then
                 set minDist = dist
-                set GetMainTarget_unit = u
+                set GroupGetNearestXY_unit = u
             endif
-            call GroupRemoveUnit(GetMainTarget_group, u)
+            call GroupRemoveUnit(GroupGetNearestXY_group, u)
         endloop
-
         set u = null
-        return GetMainTarget_unit
+        return GroupGetNearestXY_unit
     endfunction
 
     // Backstab - ranges from 0 to 180, values close to 0 indicate backstab
-    public function GetBackstabAngle takes unit source, unit target returns real
-        // TODO: math func?
-        local real dmgAngle = bj_RADTODEG * Atan2(GetUnitY(target) - GetUnitY(source), GetUnitX(target) - GetUnitX(source))
-        local real facingAngle = GetUnitFacing(target)
-        // Map between (0 - 360)
+    function GetBackstabAngle takes unit source, unit target returns real
+        local real dmgAngle = AngleBetweenUnits(source, target)
         if dmgAngle < 0.0 then
-            set dmgAngle = 360.0 + dmgAngle
+            set dmgAngle = 360.0 + dmgAngle // Map between (0 - 360)
         endif
-        set dmgAngle = RAbsBJ(dmgAngle - facingAngle)
-        // Map between (0 - 180)
+        set dmgAngle = RAbsBJ(dmgAngle - GetUnitFacing(target))
         if dmgAngle > 180 then
-            return 360 - dmgAngle
+            return 360 - dmgAngle // Map between (0 - 180)
         endif
         return dmgAngle
     endfunction
 
     // Difference between caster's facing and angle between units
-    public function GetCleaveAngle takes unit source, unit target returns real
-        // TODO: math func?
+    function GetCleaveAngle takes unit source, unit target returns real
         local real dmgAngle = AngleBetweenUnits(source, target)
-        local real facingAngle = GetUnitFacing(source)
-        // Map between (0 - 360)
         if dmgAngle < 0.0 then
-            set dmgAngle = 360.0 + dmgAngle
+            set dmgAngle = 360.0 + dmgAngle // Map between (0 - 360)
         endif
-        set dmgAngle = RAbsBJ(dmgAngle - facingAngle)
-        // Map between (0 - 180)
+        set dmgAngle = RAbsBJ(dmgAngle - GetUnitFacing(source))
         if dmgAngle > 180 then
-            return 360 - dmgAngle
+            return 360 - dmgAngle // Map between (0 - 180)
         endif
         return dmgAngle
     endfunction

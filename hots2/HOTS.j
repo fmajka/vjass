@@ -1,24 +1,26 @@
 library HOTS requires Utils, TextTag, Spawner
 
 	globals
-		public player PLAYER_VILLAGE = Player(10) // Number 11
-		public player PLAYER_WORMS = Player(11) // Number 12
-		public player PLAYER_FLORA = Player(12) // Number 13
+		player PLAYER_VILLAGE = Player(10) // Number 11
+		player PLAYER_WORMS = Player(11) // Number 12
+		player PLAYER_FLORA = Player(12) // Number 13
 
-		public integer UNIT_TYPE_FIRE = 'h005'
+		integer UNIT_TYPE_FIRE = 'h005'
 
-		public integer ABILITY_LIGHT = 'A00H'
-		public integer ABILITY_DISARM = 'A00K'
+		integer ABILITY_LIGHT = 'A00H'
+		integer ABILITY_DISARM = 'A00K'
 
-		public integer ATTR_Q = 0
-		public integer ATTR_W = 1
-		public integer ATTR_E = 2
-		public integer ATTR_R = 3
+		integer ATTR_Q = 0
+		integer ATTR_W = 1
+		integer ATTR_E = 2
+		integer ATTR_R = 3
 
 		private integer KeyFood = StringHash("food")
 		private integer KeyFoodL = StringHash("foodl")
 		private integer KeyHeal = StringHash("heal")
 		private integer KeyHealL = StringHash("heall")
+
+		integer DAMAGE_SPELL = 1
 	endglobals
 
 	// Worm API
@@ -49,14 +51,14 @@ library HOTS requires Utils, TextTag, Spawner
 
 		//"war3mapImported\\drincc.mp3"
 		set sfx = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON")
-	    call SetSoundDuration(sfx, GetSoundFileDuration(path))
-	    call SetSoundChannel(sfx, 0)
-	    call SetSoundVolume(sfx, 127)
-	    call SetSoundPitch(sfx, 1.0)
-	    call SetSoundDistances(sfx, 600.0, 10000.0)
-	    call SetSoundDistanceCutoff(sfx, 3000.0)
-	    call SetSoundConeAngles(sfx, 0.0, 0.0, 127)
-	    call SetSoundConeOrientation(sfx, 0.0, 0.0, 0.0)
+		call SetSoundDuration(sfx, GetSoundFileDuration(path))
+		call SetSoundChannel(sfx, 0)
+		call SetSoundVolume(sfx, 127)
+		call SetSoundPitch(sfx, 1.0)
+		call SetSoundDistances(sfx, 600.0, 10000.0)
+		call SetSoundDistanceCutoff(sfx, 3000.0)
+		call SetSoundConeAngles(sfx, 0.0, 0.0, 127)
+		call SetSoundConeOrientation(sfx, 0.0, 0.0, 0.0)
 
 		call AttachSoundToUnit(sfx, u)
 		call StartSound(sfx)
@@ -116,7 +118,7 @@ library HOTS requires Utils, TextTag, Spawner
 	    if fromFood then
 	    	// Filatelistyka healing from food bonus
 	    	set heal = heal * (1 + 0.1 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
-	    	call DestroyEffect(AddSpecialEffectTarget("Abilities\\Spells\\Undead\\VampiricAura\\VampiricAuraTarget.mdl", u, "origin"))
+	    	call FlashEffectTarget("Abilities\\Spells\\Undead\\VampiricAura\\VampiricAuraTarget.mdl", u, "origin")
 	    endif
 
 	    call SetUnitState(u, UNIT_STATE_LIFE, health + heal)
@@ -150,7 +152,7 @@ library HOTS requires Utils, TextTag, Spawner
 		// Filatelistyka XP scaling
 		set xp = xp + R2IR(xp * 0.08 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
 
-		call DestroyEffect(AddSpecialEffectTarget("Abilities\\Spells\\Human\\SpellSteal\\SpellStealTarget.mdl", u, "overhead"))
+		call FlashEffectTarget("Abilities\\Spells\\Human\\SpellSteal\\SpellStealTarget.mdl", u, "overhead")
 
 		if not IsUnitType(u, UNIT_TYPE_HERO) then
 			return
@@ -176,9 +178,9 @@ library HOTS requires Utils, TextTag, Spawner
 
 
 	function InteractUnit takes unit u returns nothing
-        call GroupAddUnit(udg_Interact_Group, u)
-        call SaveReal(udg_Interact_Hash, GetHandleId(u), StringHash("time"), GetRandomReal(180, 300))
-        call SetUnitVertexColor(u, 192, 192, 192, 128)
+		call GroupAddUnit(udg_Interact_Group, u)
+		call SaveReal(udg_Interact_Hash, GetHandleId(u), StringHash("time"), GetRandomReal(180, 300))
+		call SetUnitVertexColor(u, 192, 192, 192, 128)
 	endfunction
 
 
@@ -203,6 +205,20 @@ library HOTS requires Utils, TextTag, Spawner
 			return 'I002'
 		endif
 	endfunction
+
+	function ClearDamageTags takes nothing returns nothing
+		set udg_damageSpell = false
+	endfunction
+
+	function DealDamage takes unit source, unit target, real damage, integer tag returns nothing
+		if tag == DAMAGE_SPELL then
+				set udg_damageSpell = true
+		endif
+		call UnitDamageTarget(source, target, damage, true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
+		call ClearDamageTags()
+	endfunction
+
+
 
 	/////////////////////
 	// TIMER CALLBACKS //

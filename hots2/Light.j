@@ -7,12 +7,12 @@ library Light requires HOTS, Weapon, Utils
 
 	private function SetState_func takes nothing returns nothing
 		local unit u = GetEnumUnit()
-		local integer light = GetUnitAbilityLevel(u, HOTS_ABILITY_LIGHT)
+		local integer light = GetUnitAbilityLevel(u, ABILITY_LIGHT)
 
 		if State and light == 0 then
-			call UnitAddAbility(u, HOTS_ABILITY_LIGHT)
+			call UnitAddAbility(u, ABILITY_LIGHT)
 		elseif not State and light > 0 then
-			call UnitRemoveAbility(u, HOTS_ABILITY_LIGHT)
+			call UnitRemoveAbility(u, ABILITY_LIGHT)
 		endif
 
 		set u = null
@@ -32,11 +32,11 @@ library Light requires HOTS, Weapon, Utils
 		if lit and not IsUnitInGroup(u, Group) then
 			call GroupAddUnit(Group, u)
 			if State then
-				call UnitAddAbility(u, HOTS_ABILITY_LIGHT)
+				call UnitAddAbility(u, ABILITY_LIGHT)
 			endif
 		elseif not lit and IsUnitInGroup(u, Group) then
 			call GroupRemoveUnit(Group, u)
-			call UnitRemoveAbility(u, HOTS_ABILITY_LIGHT)
+			call UnitRemoveAbility(u, ABILITY_LIGHT)
 		endif
 	endfunction
 

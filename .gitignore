@@ -1,4 +1,2 @@
-/hots2/hots1-*
-/hots2/images/
-**/maps/
+/hots2/*/
 *.w3x
