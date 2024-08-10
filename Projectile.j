@@ -1,125 +1,167 @@
-library Projectile requires Math
+library Projectile requires Combat
+	globals
+		public integer id
+		public unit source
+		public unit target
+		private group collideGroup = CreateGroup()
+		// Projectile type properties
+		private integer COUNT = 0
+		public string array PATH
+		public real array Z
+		public real array DISTANCE
+		public real array SPEED
+		public real array RADIUS
+		public boolexpr array FILTER
+		public integer array HIT_COUNT
+		public boolean array IS_PROJECTILE // false used for the source unit dashing
+		// Projectile instance properties
+		private integer count = 0
+		public integer array arrType
+		public real array arrX
+		public real array arrY
+		public real array arrAngle
+		public real array arrDistance
+		public effect array arrFx
+		public unit array arrSource
+		public group array arrHitGroup
+		public boolean array arrDone
+	endglobals
 
-	struct ProjectileType
-		integer unitId
-		real distance
-		real speed
-		real radius
-		filterfunc filter
-		integer hitCount
+	function InitProjectile takes string path, real z, real dist, real speed, real r, boolexpr filter, integer hitCount returns integer
+		local integer i = COUNT
+		set PATH[i] = path
+		set Z[i] = z
+		set DISTANCE[i] = dist
+		set SPEED[i] = speed
+		set RADIUS[i] = r
+		set FILTER[i] = filter
+		set HIT_COUNT[i] = hitCount
+		set IS_PROJECTILE[i] = true
+		set COUNT = COUNT + 1
+		return i
+	endfunction
 
-		static method create takes integer unitId, real distance, real speed, real radius, filterfunc filter, integer hitCount returns ProjectileType
-			local ProjectileType new = ProjectileType.allocate()
-			set new.unitId = unitId
-			set new.distance = distance
-			set new.speed = speed
-			set new.radius = radius
-			set new.filter = filter
-			set new.hitCount = hitCount
-			return new
-		endmethod
-	endstruct
+	// Makes the casting unit dash instead of creating a projectile
+	// Doesn't use some of the properties
+	function InitDash takes real dist, real speed, real r, boolexpr filter, integer hitCount returns integer
+		local integer i = COUNT
+		set DISTANCE[i] = dist
+		set SPEED[i] = speed
+		set RADIUS[i] = r
+		set FILTER[i] = filter
+		set HIT_COUNT[i] = hitCount
+		set IS_PROJECTILE[i] = false
+		set COUNT = COUNT + 1
+		return i
+	endfunction
 
-	struct ProjectileBase
-		// Struct
-		private static real MAX_COLLISION_SIZE = 72.0
-		private static ProjectileBase array projectileArr
-		private static integer projectileCount = 0
-		public static ProjectileBase triggerProjectile
+	// Creates a new projectile of specified type on source unit's position
+	// Returns the created projectile's ID (array index)
+	function UnitSpawnProjectile takes unit source, integer projType, real angle returns integer
+		local integer i = count
+		local real x = GetUnitX(source)
+		local real y = GetUnitY(source)
+		local real rad = bj_DEGTORAD * angle
+		set arrType[i] = projType
+		set arrX[i] = x
+		set arrY[i] = y
+		set arrAngle[i] = rad
+		set arrDistance[i] = DISTANCE[projType]
+		set arrFx[i] = AddSpecialEffect(PATH[projType], x, y)
+		//call BlzSetSpecialEffectPosition(arrFx[i], x, y, Z[projType])
+		call BlzSetSpecialEffectRoll(arrFx[i], rad + bj_PI)
+		set arrSource[i] = source
+		set arrHitGroup[i] = CreateGroup()
+		set arrDone[i] = false
+		set count = count + 1
+		return i
+	endfunction
 
-		public static method filterDefault takes nothing returns boolean
-			local boolean inRange = DistanceBetweenUnits(GetFilterUnit(), triggerProjectile.u) < triggerProjectile.projectileType.radius + BlzGetUnitCollisionSize(GetFilterUnit())
-			local boolean wasntHitBefore = not IsUnitInGroup(GetFilterUnit(), triggerProjectile.hitGroup)
-			return GetFilterUnit() != triggerProjectile.u and wasntHitBefore and inRange
-		endmethod
+	// Makes the source unit dash (could say that it turns into a projectile)
+	function UnitDash takes unit source, integer dashType, real angle returns integer
+		local integer i = count
+		local real x = GetUnitX(source)
+		local real y = GetUnitY(source)
+		local real rad = bj_DEGTORAD * angle
+		set arrType[i] = dashType
+		set arrX[i] = x
+		set arrY[i] = y
+		set arrAngle[i] = rad
+		set arrDistance[i] = DISTANCE[dashType]
+		set arrSource[i] = source
+		set arrHitGroup[i] = CreateGroup()
+		set arrDone[i] = false
+		set count = count + 1
+		return i
+	endfunction
 
-		public static method filterTargetable takes nothing returns boolean
-			return filterDefault() and IsUnitAliveBJ(GetFilterUnit()) and not BlzIsUnitInvulnerable(GetFilterUnit())
-		endmethod
+	public function GetHitsRemaining takes integer index returns integer
+		return HIT_COUNT[arrType[index]] - CountUnitsInGroup(arrHitGroup[index])
+	endfunction
 
-		public static method filterTargetableEnemy takes nothing returns boolean
-			return filterDefault() and filterTargetable() and IsUnitEnemy(GetFilterUnit(), GetOwningPlayer(triggerProjectile.owner))
-		endmethod
-
-		static method update takes real dt returns nothing
-			local integer i = 0
-			local ProjectileBase p
-			loop
-				exitwhen i == projectileCount
-				set p = projectileArr[i]
-				call p.move(dt)
-				call p.collide()
-				set i = i + 1
-			endloop
-			if projectileCount == 0 then
-				return
+	public function Update takes real dt returns nothing
+		local integer i = count - 1
+		local integer projType
+		local real dist
+		local location loc
+		local unit u
+		local boolean clearing = true
+		loop
+			exitwhen i < 0
+			set projType = arrType[i]
+			// Set globals
+			set id = i
+			set source = arrSource[i]
+			set udg_Projectile_Type = projType
+			// Check if projectile is still going
+			if arrDistance[i] <= 0 or GetHitsRemaining(i) == 0 then
+				if not arrDone[i] then
+					set arrDone[i] = true
+					set udg_Projectile_EventDone = 1
+					set udg_Projectile_EventDone = 0
+				endif
+				// Clear unused projectiles at the end of the array
+				if clearing then
+					set count = count - 1
+					if IS_PROJECTILE[projType] then
+						call DestroyEffect(arrFx[i])
+					endif
+					call DestroyGroup(arrHitGroup[i])
+				endif
+			else
+				// Update projectile
+				set clearing = false
+				set dist = SPEED[projType] * dt
+				// Move
+				if IS_PROJECTILE[projType] then
+					set arrX[i] = arrX[i] + dist * Cos(arrAngle[i])
+					set arrY[i] = arrY[i] + dist * Sin(arrAngle[i])
+					set loc = Location(arrX[i], arrY[i]) // Used for getting ground height
+					call BlzSetSpecialEffectPosition(arrFx[i], arrX[i], arrY[i], GetLocationZ(loc) + Z[projType])
+					call RemoveLocation(loc)
+				else
+					set arrX[i] = GetUnitX(source) + dist * Cos(arrAngle[i])
+					set arrY[i] = GetUnitY(source) + dist * Sin(arrAngle[i])
+					call SetUnitPosition(arrSource[i], arrX[i], arrY[i]) // Respects collision
+				endif
+				set arrDistance[i] = arrDistance[i] - dist
+				// Collide
+				call GetInRangePlayerMatching(collideGroup, arrX[i], arrY[i], RADIUS[projType], GetOwningPlayer(source), FILTER[projType])
+				loop
+					exitwhen CountUnitsInGroup(collideGroup) == 0 or GetHitsRemaining(i) == 0
+					set u = GroupGetNearestXY(collideGroup, arrX[i], arrY[i])
+					call GroupRemoveUnit(collideGroup, u)
+					if not IsUnitInGroup(u, arrHitGroup[i]) then
+						call GroupAddUnit(arrHitGroup[i], u)
+						set target = u
+						set udg_Projectile_EventHit = 1
+						set udg_Projectile_EventHit = 0
+					endif
+				endloop
+				call GroupClear(collideGroup)
 			endif
-			set p = projectileArr[projectileCount - 1]
-			if not IsUnitAliveBJ(p.u) then
-				call p.destroy()
-				set projectileCount = projectileCount - 1 
-			endif
-		endmethod
-
-		// Instance
-		unit u
-		unit owner
-		group hitGroup
-		real distance
-		real angle
-		ProjectileType projectileType
-		
-		static method create takes unit owner, ProjectileType projectileType, real angle returns ProjectileBase
-			local ProjectileBase new = ProjectileBase.allocate()
-			set new.u = CreateUnit(GetOwningPlayer(owner), projectileType.unitId, GetUnitX(owner), GetUnitY(owner), angle)
-			set new.hitGroup = CreateGroup()
-			set new.distance = projectileType.distance
-			set new.owner = owner
-			set new.projectileType = projectileType
-			set new.angle = angle * bj_DEGTORAD
-			set projectileArr[projectileCount] = new
-			set projectileCount = projectileCount + 1
-			return new
-		endmethod
-
-		public method getHitsRemaining takes nothing returns integer
-			return this.projectileType.hitCount - CountUnitsInGroup(this.hitGroup)
-		endmethod
-
-		method move takes real dt returns nothing
-			local real dist = this.projectileType.speed * dt
-			call SetUnitX(this.u, GetUnitX(this.u) + dist * Cos(this.angle))
-			call SetUnitY(this.u, GetUnitY(this.u) + dist * Sin(this.angle))
-			set this.distance = this.distance - dist
-			if this.distance <= 0 then
-				call KillUnit(this.u)
-			endif
-		endmethod
-
-		method collide takes nothing returns nothing
-			local group g = CreateGroup()
-			local unit u
-			set triggerProjectile = this
-			call GroupEnumUnitsInRange(g, GetUnitX(this.u), GetUnitY(this.u), this.projectileType.radius + MAX_COLLISION_SIZE, this.projectileType.filter)
-			loop
-				exitwhen CountUnitsInGroup(g) == 0 or this.getHitsRemaining() == 0
-				// TODO: find nearest target
-				set u = FirstOfGroup(g)
-				call GroupRemoveUnit(g, u)
-				call GroupAddUnit(this.hitGroup, u)
-				call this.onHit(u)
-			endloop
-			call DestroyGroup(g)
-			set u = null
-			set g = null
-			if this.getHitsRemaining() == 0 then
-				call KillUnit(this.u)
-			endif
-		endmethod
-
-		// Overridable
-		stub method onHit takes unit target returns nothing
-		endmethod
-	endstruct
-
+			set i = i - 1
+		endloop
+		set u = null
+	endfunction
 endlibrary

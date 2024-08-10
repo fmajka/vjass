@@ -11,6 +11,7 @@ library Weapon initializer init
 		public integer KeyWeaponType = StringHash("weapontype")
 		public integer KeyAttachment = StringHash("attachment")
 		public integer KeyName = StringHash("name")
+		public integer KeyTag = StringHash("tag")
 		public integer KeyCount = StringHash("count")
 
 		// Weapon type IDs (used for playing weapon sounds)
@@ -27,6 +28,8 @@ library Weapon initializer init
 		// Weapon item IDs
 		public integer ITEM_STICK = 'I006'
 		public integer ITEM_TORCH = 'I007'
+		public integer ITEM_WOODEN_DAGGER = 'I00A'
+		public integer ITEM_WOODEN_KATANA = 'I00B'
 	endglobals
 
 	// Adds a new weapon to the system
@@ -59,6 +62,12 @@ library Weapon initializer init
 		call InitWeapon(ITEM_TORCH, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', "z Pochodnią")
 		call WeaponAddSpell(ITEM_TORCH, 'A00C')
 		call WeaponAddSpell(ITEM_TORCH, 'A00E')
+		call InitWeapon(ITEM_WOODEN_DAGGER, 4, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00Q', "ze Sztyletem")
+		call WeaponAddSpell(ITEM_WOODEN_DAGGER, 'A00P')
+		call InitWeapon(ITEM_WOODEN_KATANA, 5, 1, 6, 1.00, WOOD_HEAVY_BASH, 'A00R', "z Kataną")
+		call SaveStr(Hash, ITEM_WOODEN_KATANA, KeyTag, "flesh") // Special animation tag
+		call WeaponAddSpell(ITEM_WOODEN_KATANA, 'A00O')
+		call WeaponAddSpell(ITEM_WOODEN_KATANA, 'A00N')
 	endfunction
 
 
@@ -98,6 +107,10 @@ library Weapon initializer init
 				call UnitRemoveAbility(u, LoadInteger(Hash, weaponId, count))
 				set count = count - 1
 			endloop
+			// Remove animation tags
+			if HaveSavedString(Hash, weaponId, KeyTag) then
+				call AddUnitAnimationProperties(u, LoadStr(Hash, weaponId, KeyTag), false)
+			endif
 
 			if isHero then
 				set name = LoadStr(Hash, unitId, KeyName) // <-- Stored base name
@@ -122,14 +135,18 @@ library Weapon initializer init
 				call UnitAddAbility(u, LoadInteger(Hash, weaponId, count))
 				set count = count - 1
 			endloop
+			// Add animation tags
+			if HaveSavedString(Hash, weaponId, KeyTag) then
+				call AddUnitAnimationProperties(u, LoadStr(Hash, weaponId, KeyTag), true)
+			endif
 
 			if isHero then
 				call SaveInteger(Hash, unitId, KeyWeaponType, LoadInteger(Hash, weaponId, KeyWeaponType))
 				call SaveStr(Hash, unitId, KeyName, name) // <-- Previous name
 				set name = name + " " + LoadStr(Hash, weaponId, KeyName)
 			endif
-		// Weaponless - clear all weapon data
 		else
+			// Weaponless - clear all weapon data
 			call FlushChildHashtable(Hash, unitId)
 		endif
 

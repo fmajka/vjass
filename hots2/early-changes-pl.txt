@@ -118,3 +118,42 @@ HotS [Day 15, 28.07.2024]:
 - Nieznaczny rewrite skryptów: HOTS.j, Combat.j, Dummy.j
 - Działający spell damage tag
 - Spell patyka slowuje cele
+
+HotS [Day 16, 29.07.2024]:
+- Planowanie terenu okolic Skopania
+- Zalążek terenu pomiędzy Skopaniem i Dżunglą
+
+HotS [Day 17, 30.07.2024]:
+- Praca nad terenem: cmentarz, równina, las
+
+HotS [Day 18, 31.07.2024]:
+- Dalsza praca nad terenem lasu
+
+HotS [Day 19, 02.08.2024]:
+- Teren na wschód od Skopania (nad i pod drogą)
+- Dodano spawnowanie wilczków
+- Kwiaty pojawiają się na obszarze całej mapy
+- Dorzucono parę kamieni
+
+HotS [Day 20, 05.08.2024]:
+- Przeportowano bazę dla Drewnianego Sztyletu i Katany
+- Po wielu ciągłych zmianach w końcu dodano ProjectileSystem
+- Pierwszy działający pocisk: PROJECTILE_DAGGER
+- Backstab dla sztyletu
+- Dodawanie i usuwanie animation tagów dla WeaponSystem
+
+HotS [Day 21, 06.08.2024]:
+- Poszerzono możliwości ProjectileSystem o dashowanie się jednostek
+- Dodano blokowanie ciosów
+- Działające umiejętności katany: Empowered Charge, Deflect, Counter Strike
+
+HotS [Day 22, 08.08.2024]:
+- Dodano pasywkę katany
+- Wykrzyknik przy krytycznym ciosie (backstab, kata)
+
+HotS [Day 23, 09.08.2024]:
+- Nowy system: KnockbackSystem
+
+HotS [Day 24, 10.08.2024]:
+- Knockback dla skilli katany
+- Kowal sprzedająca drewnianą broń

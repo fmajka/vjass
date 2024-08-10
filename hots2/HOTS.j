@@ -1,4 +1,4 @@
-library HOTS requires Utils, TextTag, Spawner
+library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 
 	globals
 		player PLAYER_VILLAGE = Player(10) // Number 11
@@ -21,7 +21,16 @@ library HOTS requires Utils, TextTag, Spawner
 		private integer KeyHealL = StringHash("heall")
 
 		integer DAMAGE_SPELL = 1
+		integer DAMAGE_SPELLNOCOMBO = 2
+
+		integer PROJECTILE_DAGGER
+		integer DASH_KATANA
 	endglobals
+
+	private function init takes nothing returns nothing
+		set PROJECTILE_DAGGER = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
+		set DASH_KATANA = InitDash(600, 1300, 60, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
+	endfunction
 
 	// Worm API
 	function SetWormIdProps takes integer wormId, integer food, integer foodl, real heal, real heall returns nothing
@@ -41,31 +50,37 @@ library HOTS requires Utils, TextTag, Spawner
 		return LoadReal(udg_Worm_Hash, id, KeyHeal) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, KeyHealL)
 	endfunction
 
-
-	// Create and play a new 3D sound for players
-	function UnitMakeSound takes unit u, string path returns nothing
+	// Base extendable function for playing sounds, used by below functions
+	private function UnitMakeSoundBase takes unit u, string path, real pitch returns nothing
 		local sound sfx = null
 		if not IsUnitVisible(u, PLAYER_VILLAGE) then
 			return
 		endif
-
 		//"war3mapImported\\drincc.mp3"
 		set sfx = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON")
 		call SetSoundDuration(sfx, GetSoundFileDuration(path))
 		call SetSoundChannel(sfx, 0)
 		call SetSoundVolume(sfx, 127)
-		call SetSoundPitch(sfx, 1.0)
+		call SetSoundPitch(sfx, pitch)
 		call SetSoundDistances(sfx, 600.0, 10000.0)
 		call SetSoundDistanceCutoff(sfx, 3000.0)
 		call SetSoundConeAngles(sfx, 0.0, 0.0, 127)
 		call SetSoundConeOrientation(sfx, 0.0, 0.0, 0.0)
-
 		call AttachSoundToUnit(sfx, u)
 		call StartSound(sfx)
 		call KillSoundWhenDone(sfx)
 		set sfx = null
 	endfunction
 
+	// Create and play a new basic 3D sound for players
+	function UnitMakeSound takes unit u, string path returns nothing
+		call UnitMakeSoundBase(u, path, 1.0)
+	endfunction
+
+	// Also adjust pitch
+	function UnitMakeSoundPitch takes unit u, string path, real pitch returns nothing
+		call UnitMakeSoundBase(u, path, pitch)
+	endfunction
 
 	// Displays warning texttag above unit
 	function UnitWarn takes unit u, string text returns texttag
@@ -208,11 +223,15 @@ library HOTS requires Utils, TextTag, Spawner
 
 	function ClearDamageTags takes nothing returns nothing
 		set udg_damageSpell = false
+		set udg_damageNoCombo = false
 	endfunction
 
 	function DealDamage takes unit source, unit target, real damage, integer tag returns nothing
 		if tag == DAMAGE_SPELL then
-				set udg_damageSpell = true
+			set udg_damageSpell = true
+		elseif tag == DAMAGE_SPELLNOCOMBO then
+			set udg_damageSpell = true
+			set udg_damageNoCombo = true
 		endif
 		call UnitDamageTarget(source, target, damage, true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
 		call ClearDamageTags()
