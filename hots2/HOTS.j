@@ -23,13 +23,18 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		integer DAMAGE_SPELL = 1
 		integer DAMAGE_SPELLNOCOMBO = 2
 
+		integer TASK_BIOLOG = 1
+
 		integer PROJECTILE_DAGGER
 		integer DASH_KATANA
+		integer PROJECTILE_AXE
 	endglobals
 
 	private function init takes nothing returns nothing
 		set PROJECTILE_DAGGER = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
 		set DASH_KATANA = InitDash(600, 1300, 60, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
+		set PROJECTILE_AXE = InitProjectile("Abilities\\Weapons\\RexxarMissile\\RexxarMissile.mdl", 50, 1, 2, 90, Combat_IN_RANGE_ENEMY_ATTACKABLE, 999)
+		set Projectile_TRIGGER_UPDATE_EVENT[PROJECTILE_AXE] = true
 	endfunction
 
 	// Worm API
@@ -48,6 +53,14 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 	function GetWormHeal takes unit u returns real
 		local integer id = GetUnitTypeId(u)
 		return LoadReal(udg_Worm_Hash, id, KeyHeal) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, KeyHealL)
+	endfunction
+
+	function EraseWorm takes item wormItem returns nothing
+		local integer itemHandle = GetHandleId(wormItem)
+		local unit worm = LoadUnitHandle(udg_Worm_Hash, itemHandle, StringHash("unit"))
+		call FlushChildHashtable(udg_Worm_Hash, itemHandle)
+		call RemoveUnit(worm)
+		set worm = null
 	endfunction
 
 	// Base extendable function for playing sounds, used by below functions
@@ -84,25 +97,23 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 
 	// Displays warning texttag above unit
 	function UnitWarn takes unit u, string text returns texttag
-	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_ID_WARNING)
+	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_WARNING)
 	    call SetTextTagVelocityBJ(tt, 60, 90)
 	    call SetTextTagFadeSpan(tt, 1.0, 3.0)
 	    return tt
 	endfunction
 
-
 	function GetDamageTextColor takes unit source, unit target returns integer
 		// TODO: block color
 		if GetUnitTypeId(source) == UNIT_TYPE_FIRE then
-			return TextTag_COLOR_ID_ORANGE
+			return TextTag_COLOR_ORANGE
 		elseif IsUnitAlly(target, PLAYER_VILLAGE) then
-			return TextTag_COLOR_ID_RED
+			return TextTag_COLOR_RED
 		elseif IsUnitEnemy(target, PLAYER_VILLAGE) then
-			return TextTag_COLOR_ID_YELLOW
+			return TextTag_COLOR_YELLOW
 		endif
 		return -1
 	endfunction
-
 
 	function GetPlayerAttr takes player p, integer attrId returns integer
 		if attrId == ATTR_Q then
@@ -117,11 +128,9 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		return 0
 	endfunction
 
-
 	function PlayerBuffDuration takes player p, real duration returns real
 		return duration * (1 + 0.1 * GetPlayerAttr(p, ATTR_R))
 	endfunction
-
 
 	function UnitHeal takes unit u, real heal, boolean showText, boolean fromFood returns nothing
 		local texttag tt
@@ -129,58 +138,55 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		if heal <= 0 then
 			return
 		endif
-		
-	    if fromFood then
-	    	// Filatelistyka healing from food bonus
-	    	set heal = heal * (1 + 0.1 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
-	    	call FlashEffectTarget("Abilities\\Spells\\Undead\\VampiricAura\\VampiricAuraTarget.mdl", u, "origin")
-	    endif
-
-	    call SetUnitState(u, UNIT_STATE_LIFE, health + heal)
-
-	    if showText and heal > 0.5 and IsUnitVisible(u, PLAYER_VILLAGE) then
-			set tt = CreateTextTagUnitColor(I2S(R2IR(heal)), u, GetRandomReal(15, 45), 7 * (1 + 0.01 * heal), TextTag_COLOR_ID_GREEN)
+		if fromFood then
+			// Filatelistyka healing from food bonus
+			set heal = heal * (1 + 0.1 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
+			call FlashEffectTarget("Abilities\\Spells\\Undead\\VampiricAura\\VampiricAuraTarget.mdl", u, "origin")
+		endif
+		call SetUnitState(u, UNIT_STATE_LIFE, health + heal)
+		if showText and heal > 0.5 and IsUnitVisible(u, PLAYER_VILLAGE) then
+			set tt = CreateTextTagUnitColor(I2S(R2IR(heal)), u, GetRandomReal(15, 45), 7 * (1 + 0.01 * heal), TextTag_COLOR_GREEN)
 			call SetTextTagVelocityBJ(tt, 40, 90)
 			call SetTextTagFadeSpan(tt, 1.0, 2.5)
-	    endif
+		endif
 	endfunction
-
 
 	function CrookAddHunger takes unit u, integer val returns nothing
 		// Filatelistyka saturation bonus
 		set val = val + R2IR(val * 0.1 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
-
-	    set val = GetHeroStr(u, false) + val
-	    call SetHeroStr(u, IMaxBJ(1, IMinBJ(100, val)), true)
+		set val = GetHeroStr(u, false) + val
+		call SetHeroStr(u, IMaxBJ(1, IMinBJ(100, val)), true)
 	endfunction
-
 
 	function CrookAddThirst takes unit u, integer val returns nothing
-	    set val = GetHeroAgi(u, false) + val
-	    call SetHeroAgi(u, IMaxBJ(1, IMinBJ(100, val)), true)
-	    set udg_Player_Thirst[GetConvertedPlayerId(GetOwningPlayer(u))] = 0.00
+		set val = GetHeroAgi(u, false) + val
+		call SetHeroAgi(u, IMaxBJ(1, IMinBJ(100, val)), true)
+		set udg_Player_Thirst[GetConvertedPlayerId(GetOwningPlayer(u))] = 0.00
 	endfunction
 
-
-	function CrookAddXP takes unit u, integer xp returns nothing
+	function CrookAddXP takes unit u, integer xp returns texttag
 		local texttag tt
 		// Filatelistyka XP scaling
 		set xp = xp + R2IR(xp * 0.08 * GetPlayerAttr(GetOwningPlayer(u), ATTR_R))
-
 		call FlashEffectTarget("Abilities\\Spells\\Human\\SpellSteal\\SpellStealTarget.mdl", u, "overhead")
-
 		if not IsUnitType(u, UNIT_TYPE_HERO) then
-			return
+			return null
 		endif
-
 		set tt = CreateTextTagUnitColor("+" + I2S(xp) + "xp!", u, 30, 7 * (1 + 0.01 * I2R(xp)), -1)
-	    call SetTextTagVelocityBJ(tt, 32, 90)
-	    call SetTextTagFadeSpan(tt, 2.0, 3.5)
-	    call SetTextTagPlayer(tt, GetOwningPlayer(u))
-
+		call SetTextTagVelocityBJ(tt, 32, 90)
+		call SetTextTagFadeSpan(tt, 2.0, 3.5)
+		call SetTextTagPlayer(tt, GetOwningPlayer(u))
 		call AddHeroXP(u, xp, true)
+		return tt
 	endfunction
 
+	function CrookAddGold takes unit u, integer gold, boolean makeSound returns nothing
+		local texttag tt = CreateTextTagUnitColor("+" + I2S(gold), u, 0, 10, TextTag_COLOR_GOLD)
+		call SetTextTagVelocityBJ(tt, 64.0, 90.0)
+		call SetTextTagFadeSpan(tt, 1.0, 1.5)
+		call AdjustPlayerStateBJ(gold, GetOwningPlayer(u), PLAYER_STATE_RESOURCE_GOLD)
+		call UnitMakeSound(u, "Abilities\\Spells\\Items\\ResourceItems\\ReceiveGold.wav")
+	endfunction
 
 	function GetSpellDamage takes unit u returns real
 		local real base = BlzGetUnitBaseDamage(u, 1) + GetRandomInt(1, BlzGetUnitDiceSides(u, 1))
@@ -191,13 +197,11 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		return GetUnitLvl(u) + base
     endfunction
 
-
 	function InteractUnit takes unit u returns nothing
 		call GroupAddUnit(udg_Interact_Group, u)
 		call SaveReal(udg_Interact_Hash, GetHandleId(u), StringHash("time"), GetRandomReal(180, 300))
 		call SetUnitVertexColor(u, 192, 192, 192, 128)
 	endfunction
-
 
 	function GetRNG takes real chance returns boolean
 		if GetRandomReal(0, 1) < chance then
@@ -205,7 +209,6 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		endif
 		return false
 	endfunction
-
 
 	function GetRandomCoinId takes nothing returns integer
 		local real chance = GetRandomReal(0, 1)
@@ -224,6 +227,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 	function ClearDamageTags takes nothing returns nothing
 		set udg_damageSpell = false
 		set udg_damageNoCombo = false
+		set udg_damageNoOnHit = false
 	endfunction
 
 	function DealDamage takes unit source, unit target, real damage, integer tag returns nothing
@@ -236,8 +240,6 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		call UnitDamageTarget(source, target, damage, true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
 		call ClearDamageTags()
 	endfunction
-
-
 
 	/////////////////////
 	// TIMER CALLBACKS //

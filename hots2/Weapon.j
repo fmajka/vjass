@@ -17,6 +17,7 @@ library Weapon initializer init
 		// Weapon type IDs (used for playing weapon sounds)
 		public integer METAL_HEAVY_BASH = 8
 		public integer WOOD_HEAVY_BASH = 16
+		public integer METAL_MEDIUM_CHOP = 2
 
 		// Attack range upgrade
 		public integer TECH_ATTACK_RANGE = 'R004'
@@ -30,6 +31,7 @@ library Weapon initializer init
 		public integer ITEM_TORCH = 'I007'
 		public integer ITEM_WOODEN_DAGGER = 'I00A'
 		public integer ITEM_WOODEN_KATANA = 'I00B'
+		public integer ITEM_WOODEN_AXE = 'I00E'
 	endglobals
 
 	// Adds a new weapon to the system
@@ -62,12 +64,14 @@ library Weapon initializer init
 		call InitWeapon(ITEM_TORCH, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', "z Pochodnią")
 		call WeaponAddSpell(ITEM_TORCH, 'A00C')
 		call WeaponAddSpell(ITEM_TORCH, 'A00E')
-		call InitWeapon(ITEM_WOODEN_DAGGER, 4, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00Q', "ze Sztyletem")
+		call InitWeapon(ITEM_WOODEN_DAGGER, 3, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00Q', "ze Sztyletem")
 		call WeaponAddSpell(ITEM_WOODEN_DAGGER, 'A00P')
-		call InitWeapon(ITEM_WOODEN_KATANA, 5, 1, 6, 1.00, WOOD_HEAVY_BASH, 'A00R', "z Kataną")
-		call SaveStr(Hash, ITEM_WOODEN_KATANA, KeyTag, "flesh") // Special animation tag
+		call InitWeapon(ITEM_WOODEN_KATANA, 4, 1, 6, 1.00, WOOD_HEAVY_BASH, 'A00R', "z Kataną")
+		call SaveStr(Hash, ITEM_WOODEN_KATANA, KeyTag, "flesh") // Katana special animation tag
 		call WeaponAddSpell(ITEM_WOODEN_KATANA, 'A00O')
 		call WeaponAddSpell(ITEM_WOODEN_KATANA, 'A00N')
+		call InitWeapon(ITEM_WOODEN_AXE, 6, 0, 2, 1.15, METAL_MEDIUM_CHOP, 'A00X', "z Siekierką")
+		call WeaponAddSpell(ITEM_WOODEN_AXE, 'A00W')
 	endfunction
 
 

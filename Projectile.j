@@ -14,6 +14,7 @@ library Projectile requires Combat
 		public boolexpr array FILTER
 		public integer array HIT_COUNT
 		public boolean array IS_PROJECTILE // false used for the source unit dashing
+		public boolean array TRIGGER_UPDATE_EVENT // set udg_Projectile_EventUpdate on every tick
 		// Projectile instance properties
 		private integer count = 0
 		public integer array arrType
@@ -37,6 +38,7 @@ library Projectile requires Combat
 		set FILTER[i] = filter
 		set HIT_COUNT[i] = hitCount
 		set IS_PROJECTILE[i] = true
+		set TRIGGER_UPDATE_EVENT[i] = false
 		set COUNT = COUNT + 1
 		return i
 	endfunction
@@ -51,6 +53,7 @@ library Projectile requires Combat
 		set FILTER[i] = filter
 		set HIT_COUNT[i] = hitCount
 		set IS_PROJECTILE[i] = false
+		set TRIGGER_UPDATE_EVENT[i] = false
 		set COUNT = COUNT + 1
 		return i
 	endfunction
@@ -132,6 +135,11 @@ library Projectile requires Combat
 				// Update projectile
 				set clearing = false
 				set dist = SPEED[projType] * dt
+				// Updat event hook
+				if TRIGGER_UPDATE_EVENT[projType] then
+					set udg_Projectile_EventUpdate = 1
+					set udg_Projectile_EventUpdate = 0
+				endif
 				// Move
 				if IS_PROJECTILE[projType] then
 					set arrX[i] = arrX[i] + dist * Cos(arrAngle[i])
@@ -152,10 +160,10 @@ library Projectile requires Combat
 					set u = GroupGetNearestXY(collideGroup, arrX[i], arrY[i])
 					call GroupRemoveUnit(collideGroup, u)
 					if not IsUnitInGroup(u, arrHitGroup[i]) then
-						call GroupAddUnit(arrHitGroup[i], u)
 						set target = u
 						set udg_Projectile_EventHit = 1
 						set udg_Projectile_EventHit = 0
+						call GroupAddUnit(arrHitGroup[i], u)
 					endif
 				endloop
 				call GroupClear(collideGroup)

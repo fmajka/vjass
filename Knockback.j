@@ -11,8 +11,11 @@ library Knockback
 
 	function KnockbackUnitPolar takes unit u, real distance, real angle returns nothing
 		local integer i = 0
-		// Real physics!!!
-		local real v0 = SquareRoot(2 * distance * FRICTION)
+		local real v0 = SquareRoot(2 * distance * FRICTION) // Real physics!!!
+		// Check if it is even possible to knock this unit back
+		if IsUnitType(u, UNIT_TYPE_STRUCTURE) or GetUnitDefaultMoveSpeed(u) == 0 then
+			return
+		endif
 		// Check if unit is already being knocked back
 		loop
 			exitwhen i == count
@@ -44,7 +47,6 @@ library Knockback
 			set u = arrUnits[i]
 			exitwhen i < 0
 			if clearing and arrVel[i] <= 0 then
-				call BJDebugMsg("Cleared: " + I2S(i))
 				set count = count - 1
 			else
 				set clearing = false
@@ -58,7 +60,6 @@ library Knockback
 					call RemoveLocation(loc)
 				endif
 				if collisionFound then
-					call BJDebugMsg(I2S(i) + " collided!")
 					set arrVel[i] = arrVel[i] / 2
 					set collisionFound = false // Reset global variable
 				else
