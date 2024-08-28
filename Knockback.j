@@ -1,6 +1,6 @@
 library Knockback
 	globals
-		public real FRICTION = 1000
+		public real FRICTION = 1300
 		private unit array arrUnits
 		private real array arrVel
 		private real array arrAngle
@@ -68,7 +68,7 @@ library Knockback
 				endif
 				set arrVel[i] = arrVel[i] - FRICTION * dt
 				// Make unit move slower while knocked back
-				call SetUnitMoveSpeed(u, GetUnitDefaultMoveSpeed(u) - RMaxBJ(0, arrVel[i] * dt))
+				call SetUnitMoveSpeed(u, GetUnitDefaultMoveSpeed(u) - RAbsBJ(arrVel[i]))
 			endif
 			set i = i - 1
 		endloop

@@ -167,3 +167,26 @@ HotS [Day 26, 14.08.2024]:
 - Poprawki kodu w TextTag system
 - Dokończono system questów
 - Działające questy od biolog
+
+HotS [Day 27, 18.08.2024]:
+- Teren dżungli
+- Nowy mob: Grubby
+- Zwiększenie HP mobów o 50%
+- Śledzenie pozycji myszki i komenda /tp
+- Poprawki skilli Siekierki i Katany
+
+HotS [Day 28, 20.08.2024]:
+- Dodano cukier i jego drop z BeFlowerów
+- Dodano możliwość stackowania i rozstackowywania niektórych itemów
+- Poprawiono animację śmierci kwiatków
+
+HotS [Day 29, 22.08.2024]:
+- Dodano deszcz
+- Muzyka dla deszczu i dżungli
+- Lokalna zmiana muzyki
+- Broń nie traci durability gdy celem jest kwiatek
+- Zmniejszony spawn rate kwiatków
+- Bugfix: podnoszenie grubbych
+
+HotS [Day 30, 28.08.2024]:
+- Przygotowania do dodania dual wieldingu w Weapon.j

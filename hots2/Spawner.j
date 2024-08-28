@@ -62,6 +62,7 @@ library Spawner initializer init
 		call SaveInteger(Hash, GetHandleId(u), KeyLevel, lvl)
 		call BlzSetUnitName(u, GetObjectName(id) + " lvl. " + I2S(lvl))
 
+		call BlzSetUnitBaseDamage(u, R2I(dmg), 0)
 		call BlzSetUnitBaseDamage(u, R2I(dmg), 1)
 		call BlzSetUnitBaseDamage(u, R2I(dmg), 2)
 		call BlzSetUnitMaxHP(u, R2I(hp))
@@ -82,16 +83,21 @@ library Spawner initializer init
 
 		// Worm
 		call DefineUnitBaseDamage('h003', 6, 2)
-		call DefineUnitMaxHP('h003', 29, 4)
+		call DefineUnitMaxHP('h003', 43, 6)
 		call DefineUnitScale('h003', 0.3, 0.02)
 		call DefineUnitColor('h003', 100, 100, 100, 0, -8, -8)
 
 		// Wolf
 		call DefineUnitBaseDamage('n007', 2, 1)
-		call DefineUnitMaxHP('n007', 20, 4)
+		call DefineUnitMaxHP('n007', 30, 6)
 		call DefineUnitScale('n007', 0.36, 0.02)
 		call DefineUnitColor('n007', 100, 100, 100, 0, -3, 0)
 
+		// Grubby...
+		call DefineUnitBaseDamage('h009', 6, 1.5)
+		call DefineUnitMaxHP('h009', 37, 7)
+		call DefineUnitScale('h009', 0.36, 0.02)
+		call DefineUnitColor('h009', 50, 75, 100, 0, -4, 0)
 	endfunction
 
 endlibrary

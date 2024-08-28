@@ -224,6 +224,35 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		endif
 	endfunction
 
+	function UpdatePlayerMusicBase takes player p, string forced, string skipped returns nothing
+		if p != GetLocalPlayer() then
+			return
+		endif
+		if (RectContainsUnit(gg_rct_Jungle, udg_Crook[GetConvertedPlayerId(p)]) or forced == gg_snd_jungleloq) and skipped != gg_snd_jungleloq then
+			call PlayMusic(gg_snd_jungleloq) // Jungle music
+		elseif udg_Rain then
+			call PlayMusic(gg_snd_RainyWaltz) // Rainy waltz
+		else
+			call PlayMusic(gg_snd_metinloq) // Default music
+		endif
+	endfunction
+
+	function UpdatePlayerMusicForce takes player p, string forced returns nothing
+		call UpdatePlayerMusicBase(p, forced, null)
+	endfunction
+
+	function UpdatePlayerMusicSkip takes player p, string skipped returns nothing
+		call UpdatePlayerMusicBase(p, null, skipped)
+	endfunction
+
+	function CallbackUpdateMusic takes nothing returns nothing
+		call UpdatePlayerMusicBase(GetEnumPlayer(), null, null)
+	endfunction
+
+	function UpdateMusic takes nothing returns nothing
+		call ForForce(udg_Players, function CallbackUpdateMusic)
+	endfunction
+
 	function ClearDamageTags takes nothing returns nothing
 		set udg_damageSpell = false
 		set udg_damageNoCombo = false

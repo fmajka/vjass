@@ -161,9 +161,9 @@ library Projectile requires Combat
 					call GroupRemoveUnit(collideGroup, u)
 					if not IsUnitInGroup(u, arrHitGroup[i]) then
 						set target = u
+						call GroupAddUnit(arrHitGroup[i], u)
 						set udg_Projectile_EventHit = 1
 						set udg_Projectile_EventHit = 0
-						call GroupAddUnit(arrHitGroup[i], u)
 					endif
 				endloop
 				call GroupClear(collideGroup)
