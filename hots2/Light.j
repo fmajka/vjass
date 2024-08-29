@@ -25,7 +25,7 @@ library Light requires HOTS, Weapon, Utils
 
 	public function UnitUpdate takes unit u returns nothing
 		local boolean lit = false
-		if GetItemTypeId(Weapon_GetUnitWeapon(u)) == Weapon_ITEM_TORCH then
+		if GetItemTypeId(GetUnitWeapon(u, 1)) == Weapon_ITEM_TORCH or GetItemTypeId(GetUnitWeapon(u, 2)) == Weapon_ITEM_TORCH then
 			set lit = true
 		endif
 

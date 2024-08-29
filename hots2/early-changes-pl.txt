@@ -190,3 +190,9 @@ HotS [Day 29, 22.08.2024]:
 
 HotS [Day 30, 28.08.2024]:
 - Przygotowania do dodania dual wieldingu w Weapon.j
+
+HotS [Day 31, 29.08.2024]:
+- Dodano dual wielding z prawdziwego zdarzenia
+- Bugfix: sprzedawanie przedmiotów u handlarki
+- Bugfix: worm poprawnie znika po zjedzeniu
+- Brutalna siła przywraca dodatkowo (poziom umiejętności) punktów życia
