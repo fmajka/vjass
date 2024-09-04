@@ -1,4 +1,4 @@
-library Knockback
+library Knockback requires Math
 	globals
 		public real FRICTION = 1300
 		private unit array arrUnits
@@ -30,6 +30,13 @@ library Knockback
 		if i == count then
 			set count = count + 1
 		endif
+	endfunction
+
+	// Adjusts knockback distance based on max hp difference
+	function KnockbackTarget takes unit source, unit target, real distance returns nothing
+		local real angle = AngleBetweenUnits(source, target)
+		local real mod = RMinBJ(1.0, GetUnitState(source, UNIT_STATE_MAX_LIFE) / GetUnitState(target, UNIT_STATE_MAX_LIFE))
+		call KnockbackUnitPolar(target, mod * distance, angle)
 	endfunction
 
 	private function CallbackUpdate takes nothing returns nothing
@@ -68,7 +75,11 @@ library Knockback
 				endif
 				set arrVel[i] = arrVel[i] - FRICTION * dt
 				// Make unit move slower while knocked back
-				call SetUnitMoveSpeed(u, GetUnitDefaultMoveSpeed(u) - RAbsBJ(arrVel[i]))
+				if arrVel[i] > 0 then
+					call SetUnitMoveSpeed(u, GetUnitDefaultMoveSpeed(u) - RAbsBJ(arrVel[i]))
+				else
+					call SetUnitMoveSpeed(u, GetUnitDefaultMoveSpeed(u))
+				endif
 			endif
 			set i = i - 1
 		endloop

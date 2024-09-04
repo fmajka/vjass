@@ -5,10 +5,14 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		player PLAYER_WORMS = Player(11) // Number 12
 		player PLAYER_FLORA = Player(12) // Number 13
 
-		integer UNIT_TYPE_FIRE = 'h005'
+		integer UNIT_WORM = 'h003'
+		integer UNIT_FIRE = 'h005'
+		integer UNIT_GRUBBY = 'h009'
 
 		integer ABILITY_LIGHT = 'A00H'
 		integer ABILITY_DISARM = 'A00K'
+		integer ABILITY_GLOW_LEFT = 'A01D'
+		integer ABILITY_GLOW_RIGHT = 'A01G'
 
 		integer ATTR_Q = 0
 		integer ATTR_W = 1
@@ -28,13 +32,25 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		integer PROJECTILE_DAGGER
 		integer DASH_KATANA
 		integer PROJECTILE_AXE
+		integer PROJECTILE_HUNGER
+
+		boolexpr FILTER_LIVING_WORMS
 	endglobals
+
+	private function filterLivingWorms takes nothing returns boolean
+		local unit u = GetFilterUnit()
+		local boolean result = (GetUnitTypeId(u) == UNIT_WORM or GetUnitTypeId(u) == UNIT_GRUBBY) and IsUnitAliveBJ(u)
+		set u = null
+		return result
+endfunction
 
 	private function init takes nothing returns nothing
 		set PROJECTILE_DAGGER = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
 		set DASH_KATANA = InitDash(600, 1300, 60, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
 		set PROJECTILE_AXE = InitProjectile("Abilities\\Weapons\\RexxarMissile\\RexxarMissile.mdl", 50, 1, 2, 90, Combat_IN_RANGE_ENEMY_ATTACKABLE, 999)
 		set Projectile_TRIGGER_UPDATE_EVENT[PROJECTILE_AXE] = true
+		set FILTER_LIVING_WORMS = Condition(function filterLivingWorms)
+		set PROJECTILE_HUNGER= InitProjectile("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilMissile.mdl", 30, 1050, 700, 35, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
 	endfunction
 
 	// Worm API
@@ -63,38 +79,6 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		set worm = null
 	endfunction
 
-	// Base extendable function for playing sounds, used by below functions
-	private function UnitMakeSoundBase takes unit u, string path, real pitch returns nothing
-		local sound sfx = null
-		if not IsUnitVisible(u, PLAYER_VILLAGE) then
-			return
-		endif
-		//"war3mapImported\\drincc.mp3"
-		set sfx = CreateSound(path, false, true, true, 10, 10, "DefaultEAXON")
-		call SetSoundDuration(sfx, GetSoundFileDuration(path))
-		call SetSoundChannel(sfx, 0)
-		call SetSoundVolume(sfx, 127)
-		call SetSoundPitch(sfx, pitch)
-		call SetSoundDistances(sfx, 600.0, 10000.0)
-		call SetSoundDistanceCutoff(sfx, 3000.0)
-		call SetSoundConeAngles(sfx, 0.0, 0.0, 127)
-		call SetSoundConeOrientation(sfx, 0.0, 0.0, 0.0)
-		call AttachSoundToUnit(sfx, u)
-		call StartSound(sfx)
-		call KillSoundWhenDone(sfx)
-		set sfx = null
-	endfunction
-
-	// Create and play a new basic 3D sound for players
-	function UnitMakeSound takes unit u, string path returns nothing
-		call UnitMakeSoundBase(u, path, 1.0)
-	endfunction
-
-	// Also adjust pitch
-	function UnitMakeSoundPitch takes unit u, string path, real pitch returns nothing
-		call UnitMakeSoundBase(u, path, pitch)
-	endfunction
-
 	// Displays warning texttag above unit
 	function UnitWarn takes unit u, string text returns texttag
 	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_WARNING)
@@ -105,7 +89,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 
 	function GetDamageTextColor takes unit source, unit target returns integer
 		// TODO: block color
-		if GetUnitTypeId(source) == UNIT_TYPE_FIRE then
+		if GetUnitTypeId(source) == UNIT_FIRE then
 			return TextTag_COLOR_ORANGE
 		elseif IsUnitAlly(target, PLAYER_VILLAGE) then
 			return TextTag_COLOR_RED
@@ -197,10 +181,14 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		return GetUnitLvl(u) + base
     endfunction
 
-	function InteractUnit takes unit u returns nothing
+	function InteractUnit takes unit u returns boolean
+		if IsUnitInGroup(u, udg_Interact_Group) then
+			return false
+		endif
 		call GroupAddUnit(udg_Interact_Group, u)
 		call SaveReal(udg_Interact_Hash, GetHandleId(u), StringHash("time"), GetRandomReal(180, 300))
 		call SetUnitVertexColor(u, 192, 192, 192, 128)
+		return true
 	endfunction
 
 	function GetRNG takes real chance returns boolean
@@ -224,11 +212,48 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		endif
 	endfunction
 
+	function RockSpawnWorms takes unit rock returns integer
+		local real chance = 0.33
+		local integer wormType = UNIT_WORM
+		local integer i = GetUnitLevel(rock)
+		local integer count = 0
+		local integer level = GetRandomInt(1, 10)
+		local location loc
+		if not InteractUnit(rock) then
+			return 0
+		endif
+		if udg_Rain then
+			set chance = 2 * chance
+		endif
+		if RectContainsUnit(gg_rct_Jungle, rock) then
+			set wormType = UNIT_GRUBBY
+			set level = GetRandomInt(7, 14)
+		endif
+		loop
+			exitwhen i == 0
+			if GetRNG(chance) then
+				set count = count + 1
+				set loc = PolarProjectionXY(GetUnitX(rock), GetUnitY(rock), GetRandomReal(8, 24), GetRandomDirectionDeg())
+				call SetUnitLvl(CreateUnitAtLoc(PLAYER_WORMS, wormType, loc, GetRandomDirectionDeg()), level)
+				call RemoveLocation(loc)
+			endif
+			set i = i - 1
+		endloop
+		set loc = null
+		return count
+	endfunction
+
+	///////////
+	// MUSIC //
+	///////////
+
 	function UpdatePlayerMusicBase takes player p, string forced, string skipped returns nothing
 		if p != GetLocalPlayer() then
 			return
 		endif
-		if (RectContainsUnit(gg_rct_Jungle, udg_Crook[GetConvertedPlayerId(p)]) or forced == gg_snd_jungleloq) and skipped != gg_snd_jungleloq then
+		if udg_Boss != null then
+			call PlayMusic(gg_snd_WeHaveToDefeatIt)
+		elseif (RectContainsUnit(gg_rct_Jungle, udg_Crook[GetConvertedPlayerId(p)]) or forced == gg_snd_jungleloq) and skipped != gg_snd_jungleloq then
 			call PlayMusic(gg_snd_jungleloq) // Jungle music
 		elseif udg_Rain then
 			call PlayMusic(gg_snd_RainyWaltz) // Rainy waltz
@@ -252,6 +277,10 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 	function UpdateMusic takes nothing returns nothing
 		call ForForce(udg_Players, function CallbackUpdateMusic)
 	endfunction
+
+	////////////
+	// DAMAGE //
+	////////////
 
 	function ClearDamageTags takes nothing returns nothing
 		set udg_damageSpell = false

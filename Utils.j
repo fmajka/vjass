@@ -40,7 +40,13 @@ library Utils
 	endfunction
 
 	// Creates and immediatelly destroys effect
+	function FlashEffect takes string path, real x, real y returns nothing
+		call DestroyEffect(AddSpecialEffect(path, x, y))
+	endfunction
+
+	// Creates and immediatelly destroys effect attached to a target
 	function FlashEffectTarget takes string path, unit target, string attachment returns nothing
 		call DestroyEffect(AddSpecialEffectTarget(path, target, attachment))
 	endfunction
+
 endlibrary

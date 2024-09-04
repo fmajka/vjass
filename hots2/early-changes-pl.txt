@@ -196,3 +196,17 @@ HotS [Day 31, 29.08.2024]:
 - Bugfix: sprzedawanie przedmiotów u handlarki
 - Bugfix: worm poprawnie znika po zjedzeniu
 - Brutalna siła przywraca dodatkowo (poziom umiejętności) punktów życia
+
+HotS [Day 32, 31.08.2024]:
+- Dodano World Starvera
+- Eksperymenty z cukrem
+
+Hots [Day 33, 04.09.2024]:
+- Opracowanie team colored smugi przy używaniu skilli
+- Drugi spell World Starvera: Mark of Starvation
+
+Hots [Day 34, 05.09.2024]:
+- Team colored smuga skilli, czapka i hero glow
+- Poprawiono knockback, nowa funkcja: KnockbackTarget
+- Poprawiono wygląd pocisków World Starvera
+- Poprawiono bug z kolcami World Starvera

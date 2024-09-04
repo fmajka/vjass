@@ -17,6 +17,9 @@ library Spawner initializer init
 		public integer KeyBL = StringHash("bl")
 		public integer KeyScale = StringHash("scale")
 		public integer KeyScaleL = StringHash("scalel")
+
+		public real damageMultiplier = 1.0
+		public real hpMultiplier = 1.0
 	endglobals
 
 	function filterExpEligible takes nothing returns boolean
@@ -62,10 +65,10 @@ library Spawner initializer init
 		call SaveInteger(Hash, GetHandleId(u), KeyLevel, lvl)
 		call BlzSetUnitName(u, GetObjectName(id) + " lvl. " + I2S(lvl))
 
-		call BlzSetUnitBaseDamage(u, R2I(dmg), 0)
-		call BlzSetUnitBaseDamage(u, R2I(dmg), 1)
-		call BlzSetUnitBaseDamage(u, R2I(dmg), 2)
-		call BlzSetUnitMaxHP(u, R2I(hp))
+		call BlzSetUnitBaseDamage(u, R2I(dmg * damageMultiplier), 0)
+		call BlzSetUnitBaseDamage(u, R2I(dmg * damageMultiplier), 1)
+		call BlzSetUnitBaseDamage(u, R2I(dmg * damageMultiplier), 2)
+		call BlzSetUnitMaxHP(u, R2I(hp * hpMultiplier))
 		call SetUnitVertexColorBJ(u, r, g, b, 0)
 		call SetUnitScale(u, scale, scale, scale)
 

@@ -122,13 +122,13 @@ library Projectile requires Combat
 					set arrDone[i] = true
 					set udg_Projectile_EventDone = 1
 					set udg_Projectile_EventDone = 0
+					if IS_PROJECTILE[projType] then
+						call DestroyEffect(arrFx[i])
+					endif
 				endif
 				// Clear unused projectiles at the end of the array
 				if clearing then
 					set count = count - 1
-					if IS_PROJECTILE[projType] then
-						call DestroyEffect(arrFx[i])
-					endif
 					call DestroyGroup(arrHitGroup[i])
 				endif
 			else

@@ -129,7 +129,7 @@ library Announcer initializer init
 		set u = udg_Crook[crookId]
 
 		// Killer wasn't one of the players
-		if crookId > udg_TOTAL_PLAYERS then
+		if crookId > udg_PlayerCount then
 			return
 		endif
 
@@ -165,7 +165,7 @@ library Announcer initializer init
 		local player p
 		
 		loop
-			exitwhen i == udg_TOTAL_PLAYERS
+			exitwhen i == udg_PlayerCount
 			set p = Player(i)
 
 			// Play sound locally for each player based on their announcer

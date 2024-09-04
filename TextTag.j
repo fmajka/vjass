@@ -20,6 +20,7 @@ library TextTag initializer Init
 		public integer COLOR_ORANGE
 		public integer COLOR_WARNING
 		public integer COLOR_GOLD
+		public integer COLOR_LIGHT_PURPLE
 	endglobals
 
 	private function InitColor takes integer r, integer g, integer b returns integer
@@ -39,6 +40,7 @@ library TextTag initializer Init
 		set COLOR_ORANGE = InitColor(255, 128, 0)
 		set COLOR_WARNING = InitColor(255, 0, 0)
 		set COLOR_GOLD = InitColor(255, 192, 0)
+		set COLOR_LIGHT_PURPLE = InitColor(192, 100, 228)
 	endfunction
 
 	function CreateTextTagUnitColor takes string s, unit u, real z, real size, integer colorId returns texttag

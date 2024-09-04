@@ -70,7 +70,7 @@ library Buff initializer init requires Dummy, HOTS
 		local unit u
 		local integer lvl
 		loop
-			exitwhen playerId == udg_TOTAL_PLAYERS
+			exitwhen playerId == udg_PlayerCount
 
 			set buffId = 0
 			loop
