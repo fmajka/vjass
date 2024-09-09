@@ -16,6 +16,7 @@ library Weapon initializer init
 		public integer KeySpell = StringHash("spell1")
 		public integer KeySpell2 = StringHash("spell2")
 		public integer KeyName = StringHash("name")
+		public integer KeyTwoHanded = StringHash("twohanded")
 		public integer KeyTag = StringHash("tag")
 		public integer KeyCount = StringHash("count")
 
@@ -26,9 +27,10 @@ library Weapon initializer init
 
 		// Dual wield passive ability ID
 		integer ABILITY_DUAL_WIELD = 'A018'
+		// Dual wield attack speed bonus ability ID
 		integer ABILITY_DUAL_ATTACK_SPEED = 'A019'
 		// Attack range upgrade
-		public integer TECH_ATTACK_RANGE = 'R004'
+		integer TECH_ATTACK_RANGE = 'R004'
 
 		// Incremented when InitWeapon is called
 		public integer COUNT = 0
@@ -43,7 +45,7 @@ library Weapon initializer init
 	endglobals
 
 	// Adds a new weapon to the system
-	private function InitWeapon takes integer itemId, integer damage, integer diceSides, integer range, real intervalRatio, integer weaponTypeId, integer attachmentId, integer spellId, string name returns nothing
+	private function InitWeapon takes integer itemId, integer damage, integer diceSides, integer range, real intervalRatio, integer weaponTypeId, integer attachmentId, integer spellId, string name, boolean twoHanded returns nothing
 		call SaveInteger(Hash, itemId, KeyDamage, damage)
 		call SaveInteger(Hash, itemId, KeyDiceSides, diceSides)
 		call SaveInteger(Hash, itemId, KeyRange, range)
@@ -52,6 +54,7 @@ library Weapon initializer init
 		call SaveInteger(Hash, itemId, KeyAttachment, attachmentId)
 		call SaveInteger(Hash, itemId, KeySpell, spellId)
 		call SaveStr(Hash, itemId, KeyName, name)
+		call SaveBoolean(Hash, itemId, KeyTwoHanded, twoHanded)
 		set ID_ARR[COUNT] = itemId
 		set COUNT = COUNT + 1
 	endfunction
@@ -79,21 +82,21 @@ library Weapon initializer init
 
 	private function init takes nothing returns nothing
 		// Args: id, damage, diceSides, rangeLevel, intervalRatio, weaponTypeId, attachmentId, spellId, name (crook postfix)
-		call InitWeapon(ITEM_STICK, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00A', 'A00C', "z Patykiem")
+		call InitWeapon(ITEM_STICK, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00A', 'A00C', "z Patykiem", false)
 		call InitWeaponDual(ITEM_STICK, 'A011', 'A010')
 
-		call InitWeapon(ITEM_TORCH, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', 'A00C', "z Pochodnią")
+		call InitWeapon(ITEM_TORCH, 1, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00B', 'A00C', "z Pochodnią", false)
 		call InitWeaponDual(ITEM_TORCH, 'A012', 'A010')
 		call WeaponAddSpell(ITEM_TORCH, 'A00E')
 
-		call InitWeapon(ITEM_WOODEN_DAGGER, 3, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00Q', 'A00P', "ze Sztyletem")
+		call InitWeapon(ITEM_WOODEN_DAGGER, 3, 0, 2, 1.00, WOOD_HEAVY_BASH, 'A00Q', 'A00P', "ze Sztyletem", false)
 		call InitWeaponDual(ITEM_WOODEN_DAGGER, 'A014', 'A013')
 
-		call InitWeapon(ITEM_WOODEN_KATANA, 4, 1, 6, 1.00, WOOD_HEAVY_BASH, 'A00R', 'A00O', "z Kataną")
-		call SaveStr(Hash, ITEM_WOODEN_KATANA, KeyTag, "flesh") // Katana special animation tag
+		call InitWeapon(ITEM_WOODEN_KATANA, 4, 1, 6, 1.00, WOOD_HEAVY_BASH, 'A00R', 'A00O', "z Kataną", true)
 		call WeaponAddSpell(ITEM_WOODEN_KATANA, 'A00N')
+		call SaveStr(Hash, ITEM_WOODEN_KATANA, KeyTag, "flesh") // Katana special animation tag
 		
-		call InitWeapon(ITEM_WOODEN_AXE, 6, 0, 2, 1.15, METAL_MEDIUM_CHOP, 'A00X', 'A00W', "z Siekierką")
+		call InitWeapon(ITEM_WOODEN_AXE, 6, 0, 2, 1.15, METAL_MEDIUM_CHOP, 'A00X', 'A00W', "z Siekierką", false)
 		call InitWeaponDual(ITEM_WOODEN_AXE, 'A015', 'A016')
 	endfunction
 
@@ -201,6 +204,21 @@ library Weapon initializer init
 		local integer keyAttachment = StringHash("attachment" + I2S(handIndex))
 		local integer keySpell = StringHash("spell" + I2S(handIndex))
 		local string name = "Crook"
+		local item exceptWeapon = null
+		// Cancel when trying to equip a two-handed weapon as secondary
+		if handIndex == 2 and LoadBoolean(Hash, GetItemTypeId(weapon), KeyTwoHanded) then
+			return
+		endif
+		// Unequip current weapon when it's two-handed and equipping secondary weapon
+		set exceptWeapon = GetUnitWeapon(u, 1)
+		if handIndex == 2 and exceptWeapon != null and LoadBoolean(Hash, GetItemTypeId(exceptWeapon), KeyTwoHanded) then
+			call UnitEquipWeaponIndex(u, exceptWeapon, 1)
+		endif
+		// Unequip secondary weapon when trying to equip a two-handed weapon
+		set exceptWeapon = GetUnitWeapon(u, 2)
+		if handIndex == 1 and exceptWeapon != null and LoadBoolean(Hash, GetItemTypeId(weapon), KeyTwoHanded) then
+			call UnitEquipWeaponIndex(u, exceptWeapon, 2)
+		endif
 		// Unequip currently held weapon
 		if prevWeapon != null then
 			call UnitRemoveAbility(u, LoadInteger(Hash, weaponId, keyAttachment))
@@ -230,13 +248,11 @@ library Weapon initializer init
 			set udg_Light_Event = 1
 		endif
 		// Dual wield passive dummy
-		if handIndex == 2 then
-			if GetUnitWeapon(u, 2) == null then
-				call UnitAddAbility(u, ABILITY_DUAL_WIELD)
-				call SetUnitAbilityLevel(u, ABILITY_DUAL_WIELD, GetUnitDualProficiency(u))
-			else
-				call UnitRemoveAbility(u, ABILITY_DUAL_WIELD)
-			endif
+		if GetUnitWeapon(u, 2) == null and (prevWeapon == weapon or not LoadBoolean(Hash, weaponId, KeyTwoHanded)) then
+			call UnitAddAbility(u, ABILITY_DUAL_WIELD)
+			call SetUnitAbilityLevel(u, ABILITY_DUAL_WIELD, GetUnitDualProficiency(u))
+		else
+			call UnitRemoveAbility(u, ABILITY_DUAL_WIELD)
 		endif
 		// Dual wield attack speed
 		if IsUnitDualWielding(u) then
@@ -257,6 +273,7 @@ library Weapon initializer init
 			call BlzSetUnitName(u, name)
 		endif
 		set prevWeapon = null
+		set exceptWeapon = null
 	endfunction
 
 	// Equips the weapon to the main hand
