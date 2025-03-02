@@ -1,51 +1,110 @@
 //
 // HotS-specific library packing annoucer sound functions into 1 file
 // Updated to HotS2 on 10.02.2024
+// Refactored on 02.03.2025
 //
 
-library Announcer initializer init
+library Announcer initializer init requires Audio
 
 	globals
-		private sound array udg_SFX_GachiEat
-		private sound array udg_SFX_GachiTaunt
-		private sound array udg_SFX_GachiHit
-		private sound array udg_SFX_GachiKill
-		private sound array udg_SFX_GachiDeath
+		public string PATH = "war3mapImported\\"
+		private integer KEY_FALLBACK = StringHash("fallback")
+		
+		public string TYPE_SET = "Set"
+		public string TYPE_EAT = "Eat"
+		public string TYPE_DRINK = "Drink"
+		public string TYPE_TAUNT = "Taunt"
+		public string TYPE_TAUNT_TWO = "TauntTwo"
+		public string TYPE_TAUNT_MANY = "TauntMany"
+		public string TYPE_HIT = "Hit"
+		public string TYPE_KILL = "Kill"
+		public string TYPE_KILL_FIRE = "KillFire"
+		public string TYPE_DEATH = "Death"
 
-		public integer NONE = 0
-		public integer GACHI = 1
-		public integer ADMIXON = 2
+		public integer GACHI
+		public integer ADMIXON
 
+		// Array of announcer ids assigned to player ids (index = player id)
 		public integer array mAnnouncer
+		public hashtable hash = InitHashtable()
+		public integer announcerIndex = 1
 	endglobals
 
-	private function init takes nothing returns nothing
-		set udg_SFX_GachiEat[0] = gg_snd_gachiEat1
-		set udg_SFX_GachiEat[1] = gg_snd_gachiEat2
-		set udg_SFX_GachiEat[2] = gg_snd_gachiEat3
-		set udg_SFX_GachiTaunt[0] = gg_snd_gachiTaunt1
-		set udg_SFX_GachiTaunt[1] = gg_snd_gachiTaunt2
-		set udg_SFX_GachiTaunt[2] = gg_snd_gachiTaunt3
-		set udg_SFX_GachiTaunt[3] = gg_snd_gachiTaunt4
-		set udg_SFX_GachiHit[0] = gg_snd_gachiHit1
-		set udg_SFX_GachiHit[1] = gg_snd_gachiHit2
-		set udg_SFX_GachiHit[2] = gg_snd_gachiHit3
-		set udg_SFX_GachiHit[3] = gg_snd_gachiHit4
-		set udg_SFX_GachiKill[0] = gg_snd_gachiKill1
-		set udg_SFX_GachiKill[1] = gg_snd_gachiKill2
-		set udg_SFX_GachiKill[2] = gg_snd_gachiKill3
-		set udg_SFX_GachiKill[3] = gg_snd_gachiKill4
-		set udg_SFX_GachiKill[4] = gg_snd_gachiKill5
-		set udg_SFX_GachiKill[5] = gg_snd_gachiKill6
-		set udg_SFX_GachiKill[6] = gg_snd_gachiKill7
-		set udg_SFX_GachiDeath[0] = gg_snd_gachiDeath1
-		set udg_SFX_GachiDeath[1] = gg_snd_gachiDeath2
+	private function InitAnnouncer takes string prefix returns integer
+		local integer announcerId = announcerIndex
+		call SaveStr(hash, announcerId, StringHash("prefix"), prefix)
+		set announcerIndex = announcerIndex + 1
+		return announcerId
 	endfunction
 
-	// Abstraction for playing sounds
-	private function UnitPlay takes unit u, sound sfx returns nothing
-		call StopSound(sfx, false, false)
-        call PlaySoundOnUnitBJ(sfx, 100, u)
+	private function InitSoundPack takes integer announcerId, string sfxType, integer count returns nothing
+		call SaveInteger(hash, announcerId, StringHash(sfxType), count)
+	endfunction
+
+	private function InitFallback takes string sfxType, string fallbackType returns nothing
+		call SaveStr(hash, StringHash(sfxType), KEY_FALLBACK, fallbackType)	
+	endfunction
+
+	private function init takes nothing returns nothing
+		call InitFallback(TYPE_DRINK, TYPE_EAT)
+		call InitFallback(TYPE_TAUNT_TWO, TYPE_TAUNT_MANY)
+		call InitFallback(TYPE_TAUNT_MANY, TYPE_TAUNT)
+		call InitFallback(TYPE_KILL_FIRE, TYPE_KILL)
+		call InitFallback(TYPE_DEATH, TYPE_HIT)
+
+		set GACHI = InitAnnouncer("gachi")
+		call InitSoundPack(GACHI, TYPE_SET, 1)
+		call InitSoundPack(GACHI, TYPE_EAT, 3)
+		call InitSoundPack(GACHI, TYPE_TAUNT, 4)
+		call InitSoundPack(GACHI, TYPE_TAUNT_TWO, 1)
+		call InitSoundPack(GACHI, TYPE_TAUNT_MANY, 1)
+		call InitSoundPack(GACHI, TYPE_HIT, 4)
+		call InitSoundPack(GACHI, TYPE_KILL, 7)
+		call InitSoundPack(GACHI, TYPE_KILL_FIRE, 1)
+		call InitSoundPack(GACHI, TYPE_DEATH, 2)
+	endfunction
+
+	public function PlaySoundType takes unit u, string sfxType returns nothing
+		local integer playerId = GetPlayerId(GetOwningPlayer(u))
+		local integer announcerId = mAnnouncer[playerId]
+		local integer sfxKey = StringHash(sfxType)
+		local integer count = LoadInteger(hash, announcerId, sfxKey)
+		local integer prio = 1
+		local string prefix
+		local string path
+		// No announcer - skip
+		if announcerId == 0 then
+			return
+		endif
+		// Try to go for a fallback sound if no sound of spcified type exists
+		if count == 0 then
+			if HaveSavedString(hash, sfxKey, KEY_FALLBACK) then
+				call PlaySoundType(u, LoadStr(hash, sfxKey, KEY_FALLBACK))
+			endif
+			return
+		endif
+		// Death sound prio
+		if sfxType == TYPE_DEATH then
+			set prio = Audio_PRIO_DEATH
+		endif
+		// Get sound path
+		set prefix = LoadStr(hash, announcerId, StringHash("prefix"))
+		set path = PATH + prefix + sfxType + I2S(GetRandomInt(1, count)) + ".mp3"
+
+		call UnitSpeak(u, path, prio)
+
+		set prefix = null
+		set path = null
+	endfunction
+
+	public function GetWormSpawnString takes integer count returns string
+		if count > 2 then 
+			return TYPE_TAUNT_MANY
+		elseif count == 2 then
+			return TYPE_TAUNT_TWO
+		else
+			return TYPE_TAUNT
+		endif
 	endfunction
 
 	// Setters & Getters
@@ -54,12 +113,7 @@ library Announcer initializer init
 		local unit u = udg_Crook[id + 1]
 
 		set mAnnouncer[id] = announcerId
-
-		if announcerId == GACHI then
-			call UnitPlay(u, gg_snd_gachiSet1)
-		elseif announcerId == ADMIXON then
-			//call UnitPlay(u, gg_snd_admixSet1)
-		endif
+		call PlaySoundType(u, TYPE_SET)
 
 		set u = null
 	endfunction
@@ -68,98 +122,7 @@ library Announcer initializer init
 		return mAnnouncer[GetPlayerId(p)]
 	endfunction
 
-	// Callable functions
-	public function UnitEat takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-
-		if mAnnouncer[id] == GACHI then
-			call UnitPlay(u, udg_SFX_GachiEat[GetRandomInt(0, 2)])
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, udg_SFX_AdmixEat[GetRandomInt(0, 1)])
-		endif
-	endfunction
-
-	public function UnitDrink takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-
-		if mAnnouncer[id] == GACHI then
-			call UnitPlay(u, udg_SFX_GachiEat[GetRandomInt(0, 2)])
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, udg_SFX_AdmixDrink[GetRandomInt(0, 1)])
-		endif
-	endfunction
-
-	public function UnitSpawnWorms takes unit u, integer amount returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-		if amount <= 0 then
-			return
-		endif
-
-		if mAnnouncer[id] == GACHI then
-			if amount == 1 then
-				call UnitPlay(u, udg_SFX_GachiTaunt[GetRandomInt(0, 3)])
-			elseif amount == 2 then
-				call UnitPlay(u, gg_snd_gachiTauntTwo1)
-			else
-				call UnitPlay(u, gg_snd_gachiTauntMany1)
-			endif
-		elseif mAnnouncer[id] == ADMIXON then
-			if amount == 1 then
-				//call UnitPlay(u, udg_SFX_AdmixTaunt[GetRandomInt(0, 5)])
-			else
-				//call UnitPlay(u, udg_SFX_AdmixTauntMany[GetRandomInt(0, 2)])
-			endif
-		endif
-	endfunction
-
-	public function UnitKilled takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-
-		if mAnnouncer[id] == GACHI then
-			// TODO: suction?
-			call UnitPlay(u, udg_SFX_GachiKill[GetRandomInt(0, 6)])
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, udg_SFX_AdmixKill[GetRandomInt(0, 4)])
-		endif
-	endfunction
-
-	public function UnitBurned takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-		local integer crookId = id + 1
-		set u = udg_Crook[crookId]
-
-		// Killer wasn't one of the players
-		if crookId > udg_PlayerCount then
-			return
-		endif
-
-		if mAnnouncer[id] == GACHI then
-			call UnitPlay(u, gg_snd_gachiKillFire1)
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, gg_snd_admixKillFire1)
-		endif
-	endfunction
-
-	public function UnitHurt takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-
-		if mAnnouncer[id] == GACHI then
-			call UnitPlay(u, udg_SFX_GachiHit[GetRandomInt(0, 3)])
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, udg_SFX_AdmixHit[GetRandomInt(0, 2)])
-		endif
-	endfunction
-
-	public function UnitDeath takes unit u returns nothing
-		local integer id = GetPlayerId(GetOwningPlayer(u))
-
-		if mAnnouncer[id] == GACHI then
-			call UnitPlay(u, udg_SFX_GachiDeath[GetRandomInt(0, 1)])
-		elseif mAnnouncer[id] == ADMIXON then
-			//call UnitPlay(u, udg_SFX_AdmixHit[GetRandomInt(0, 2)])
-		endif
-	endfunction
-
+	// TODO: one day I'll need to handle this...
 	public function UnitKilledByImpostor takes unit u, unit door returns nothing
 		local integer i = 0
 		local player p
@@ -171,7 +134,8 @@ library Announcer initializer init
 			// Play sound locally for each player based on their announcer
 			if p == GetLocalPlayer() then
 				if mAnnouncer[i] == GACHI then
-					call UnitPlay(u, gg_snd_gachiImpostor1)
+					call StopSound(gg_snd_gachiImpostor1, false, false)
+    			call PlaySoundOnUnitBJ(gg_snd_gachiImpostor1, 100, u)
 				elseif mAnnouncer[i] == ADMIXON then
 					//call UnitPlay(u, gg_snd_admixImpostor1)
 				else

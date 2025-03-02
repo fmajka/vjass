@@ -51,18 +51,19 @@ library Audio
 		set t = null
 	endfunction
 
-	// Incorporates speech, sounds with priority == 0 override each other
+	// Incorporates speech, sounds with priority == 0 or positive can be overriden by equal prio
 	function UnitSpeak takes unit u, string path, integer prio returns nothing
 		local integer id = GetHandleId(u)
 		local integer currentPrio = LoadInteger(hash, id, StringHash("prio"))
 		local timer t
 		set lastSound = null
 		// Can only speak death quotes when dead
-		if not IsUnitAliveBJ(u) and prio < PRIO_DEATH then
+		// TODO: PRIO_DEATH isn't handled correctly?
+		if not IsUnitAliveBJ(u) and IAbsBJ(prio) < PRIO_DEATH then
 			return
 		endif
 		// Check if can speak
-		if prio > currentPrio or currentPrio == 0 then
+		if IAbsBJ(prio) > IAbsBJ(currentPrio) or (IAbsBJ(prio) == IAbsBJ(currentPrio) and currentPrio >= 0) then
 			// Stop currently playing quote
 			set lastSound = LoadSoundHandle(hash, id, StringHash("speech"))
 			if lastSound != null then
