@@ -35,6 +35,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		integer PROJECTILE_HUNGER
 
 		boolexpr FILTER_LIVING_WORMS
+		boolexpr FILTER_WOLF_UNSPAWNABLE
 	endglobals
 
 	private function filterLivingWorms takes nothing returns boolean
@@ -42,7 +43,18 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		local boolean result = (GetUnitTypeId(u) == UNIT_WORM or GetUnitTypeId(u) == UNIT_GRUBBY) and IsUnitAliveBJ(u)
 		set u = null
 		return result
-endfunction
+	endfunction
+
+	private function filterWolfUnspawnable takes nothing returns boolean
+		local player passive = Player(PLAYER_NEUTRAL_PASSIVE)
+		local unit u = GetFilterUnit()
+		local player owner = GetOwningPlayer(u)
+		local boolean result = owner != passive and owner != PLAYER_FLORA and IsUnitAliveBJ(u)
+		set passive = null
+		set u = null
+		set owner = null
+		return result
+	endfunction
 
 	private function init takes nothing returns nothing
 		set PROJECTILE_DAGGER = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
@@ -50,6 +62,7 @@ endfunction
 		set PROJECTILE_AXE = InitProjectile("Abilities\\Weapons\\RexxarMissile\\RexxarMissile.mdl", 50, 1, 2, 90, Combat_IN_RANGE_ENEMY_ATTACKABLE, 999)
 		set Projectile_TRIGGER_UPDATE_EVENT[PROJECTILE_AXE] = true
 		set FILTER_LIVING_WORMS = Condition(function filterLivingWorms)
+		set FILTER_WOLF_UNSPAWNABLE = Condition(function filterWolfUnspawnable)
 		set PROJECTILE_HUNGER= InitProjectile("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilMissile.mdl", 30, 1050, 700, 35, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
 	endfunction
 

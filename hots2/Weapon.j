@@ -65,10 +65,7 @@ library Weapon initializer init
 		call SaveInteger(Hash, itemId, KeyAttachment2, attachmentId)
 		call SaveInteger(Hash, itemId, KeySpell2, spellId)
 		// Dynamically update secondary spell's tooltip to primary one's
-		call BlzSetAbilityTooltip(spellId, BlzGetAbilityTooltip(primarySpellId, 0), 0)
-		call BlzSetAbilityTooltip(spellId, BlzGetAbilityTooltip(primarySpellId, 1), 1)
-		call BlzSetAbilityActivatedExtendedTooltip(spellId, BlzGetAbilityActivatedExtendedTooltip(primarySpellId, 0), 0)
-		call BlzSetAbilityActivatedExtendedTooltip(spellId, BlzGetAbilityActivatedExtendedTooltip(primarySpellId, 1), 1)
+		call BlzSetAbilityExtendedTooltip(spellId, BlzGetAbilityExtendedTooltip(primarySpellId, 1), 1)
 	endfunction
 
 	// Add a bonus ability to a weapon
@@ -261,7 +258,7 @@ library Weapon initializer init
 		else
 			call UnitRemoveAbility(u, ABILITY_DUAL_ATTACK_SPEED)
 		endif
-		// Change Crook's name
+		// Change Crook's name & add chest ability
 		if IsUnitType(u, UNIT_TYPE_HERO) then
 			if IsUnitDualWielding(u) then
 				set name = "Crookito"
@@ -269,6 +266,9 @@ library Weapon initializer init
 			set weapon = GetUnitWeapon(u, 1)
 			if weapon != null then
 				set name = name + " " + LoadStr(Hash, GetItemTypeId(weapon), KeyName)
+				call UnitRemoveAbility(u, 'A01K')
+			else
+				call UnitAddAbility(u, 'A01K')
 			endif
 			call BlzSetUnitName(u, name)
 		endif

@@ -222,3 +222,18 @@ Hots [Day 35, 05.09.2024]:
 HotS [day 36, 09.09.2024]:
 - Zalążek systemu craftingu
 - Praca nad zmodernizowaną skrzynką/plecakiem
+
+HotS [Day 37, 11.09.2024]:
+- Dodano skrzynie graczy (z których można korzystać nawet gdy są schowane)
+
+HotS [Day 38, 11.09.2024]:
+- Dokończenie i poprawki błędów systemu craftingu
+- Poprawiono zbugowany pasek zdrowia skrzyni
+
+HotS [Day 39, 13.09.2024]:
+- Zmienne przechowujące wartości RGB kolorów graczy
+- Kolorowe skrzynie
+- Lepszy spawn wilków
+
+HotS [Day 40, 15.12.2024]:
+- Usunięto śmieci z ziemi (wyder prep)

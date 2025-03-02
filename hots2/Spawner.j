@@ -23,7 +23,7 @@ library Spawner initializer init
 	endglobals
 
 	function filterExpEligible takes nothing returns boolean
-	    return IsUnitType(GetFilterUnit(), UNIT_TYPE_HERO)
+	    return GetUnitTypeId(GetFilterUnit()) == 'H002'
 	endfunction
 
 	public function DefineUnitBaseDamage takes integer id, real damage, real damageL returns nothing
