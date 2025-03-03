@@ -1,10 +1,12 @@
 library Buff initializer init requires Dummy, HOTS
 
 	globals
-		private hashtable Hash = InitHashtable()
-		public integer KeyRegen = StringHash("regen")
+		public unit target
+		public real deltaTime
+		public hashtable hash = InitHashtable()
+		public integer KEY_REGEN = StringHash("regen")
 
-		public real array TimeArr
+		public real array arrTime
 		private integer BUFF_COUNT = 0
 		private integer array ABILITY_ARR
 		private integer array BUFF_ARR
@@ -35,7 +37,7 @@ library Buff initializer init requires Dummy, HOTS
 		local player p = GetOwningPlayer(u)
 		local integer i = GetPlayerId(p) * BUFF_COUNT + buffId
 
-		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
+		set arrTime[i] = RMaxBJ(arrTime[i], duration)
 		// call Dummy_CreateTarget(p, u)
 		// call Dummy_UnitCastWithOrder(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
 		call Dummy_UnitBuff(u, ABILITY_ARR[buffId], ORDER_ARR[buffId])
@@ -49,11 +51,11 @@ library Buff initializer init requires Dummy, HOTS
 		local integer i = GetPlayerId(p) * BUFF_COUNT + SONIK
 		local integer uid = GetHandleId(u)
 
-		local integer currentLevel = LoadInteger(Hash, uid, KeyRegen)
+		local integer currentLevel = LoadInteger(hash, uid, KEY_REGEN)
 		set level = IMaxBJ(level, currentLevel)
-		call SaveInteger(Hash, uid, KeyRegen, level)
+		call SaveInteger(hash, uid, KEY_REGEN, level)
 
-		set TimeArr[i] = RMaxBJ(TimeArr[i], duration)
+		set arrTime[i] = RMaxBJ(arrTime[i], duration)
 		// call Dummy_CreateTarget(p, u)
 		// call Dummy_UnitCastWithOrder(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
 		call Dummy_UnitBuff(u, ABILITY_ARR[SONIK], ORDER_ARR[SONIK])
@@ -67,8 +69,8 @@ library Buff initializer init requires Dummy, HOTS
 		local integer playerId = 0
 		local integer buffId
 		local integer i
-		local unit u
 		local integer lvl
+		set deltaTime = dt
 		loop
 			exitwhen playerId == udg_PlayerCount
 
@@ -76,23 +78,21 @@ library Buff initializer init requires Dummy, HOTS
 			loop
 				exitwhen buffId == BUFF_COUNT
 				set i = playerId * BUFF_COUNT + buffId
-				set u = udg_Crook[playerId + 1]
+				set target = udg_Crook[playerId + 1]
 
-				set TimeArr[i] = TimeArr[i] - dt
-				if TimeArr[i] <= 0.00 then
-					if GetUnitAbilityLevel(u, BUFF_ARR[buffId]) > 0 then
-						call UnitRemoveAbility(u, BUFF_ARR[buffId])
-						// Place exceptions right here...
-						if buffId == SONIK then
-							call RemoveSavedInteger(Hash, GetHandleId(u), KeyRegen)
-						endif
+				set arrTime[i] = arrTime[i] - dt
+				set udg_Buff_Type = buffId
+				// Buff runs out
+				if arrTime[i] <= 0.00 then
+					if GetUnitAbilityLevel(target, BUFF_ARR[buffId]) > 0 then
+						call UnitRemoveAbility(target, BUFF_ARR[buffId])
+						set udg_Buff_EventDone = 1.0
+						set udg_Buff_EventDone = 0.0
 					endif
+				// Buff tick
 				else
-					// Regen healing
-					if buffId == SONIK then
-						set lvl = LoadInteger(Hash, GetHandleId(u), KeyRegen)
-						call UnitHeal(u, 0.05*lvl, false, false)
-					endif
+					set udg_Buff_EventTick = 1.0
+					set udg_Buff_EventTick = 0.0
 				endif
 
 				set buffId = buffId + 1
@@ -100,8 +100,6 @@ library Buff initializer init requires Dummy, HOTS
 
 			set playerId = playerId + 1
 		endloop
-
-		set u = null
 	endfunction
 
 endlibrary
