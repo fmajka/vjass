@@ -237,3 +237,13 @@ HotS [Day 39, 13.09.2024]:
 
 HotS [Day 40, 15.12.2024]:
 - Usunięto śmieci z ziemi (wyder prep)
+
+HotS [Day 41, 02.03.2024]:
+- Refactor Announcer.j (ZNACZĄCO bardziej elastyczny)
+- Poprawki prio w Audio.j
+
+HotS [Day 42, 03.03.2024]:
+- Dodano tick i done eventy do Buff.j
+
+HotS [Day 42, 04.03.2024]:
+- Loop.j jako zamiennik Timer.j
