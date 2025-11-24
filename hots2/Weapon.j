@@ -242,7 +242,8 @@ library Weapon initializer init
 		// Exception - light system update
 		if GetItemTypeId(prevWeapon) == ITEM_TORCH or GetItemTypeId(weapon) == ITEM_TORCH then
 			set udg_Light_Unit = u
-			set udg_Light_Event = 1
+			set udg_Light_Event = 1.0
+			set udg_Light_Event = 0.0
 		endif
 		// Dual wield passive dummy
 		if GetUnitWeapon(u, 2) == null and (prevWeapon == weapon or not LoadBoolean(Hash, weaponId, KeyTwoHanded)) then
