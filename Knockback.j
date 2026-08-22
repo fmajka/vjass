@@ -1,4 +1,4 @@
-library Knockback requires Math
+library Knockback requires Utils
 	globals
 		public real FRICTION = 1300
 		private unit array arrUnits

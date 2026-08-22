@@ -1,72 +1,52 @@
-library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
+library Hots initializer Init requires HotsConst, Utils, TextTag, Spawner, Projectile
 
 	globals
-		player PLAYER_VILLAGE = Player(10) // Number 11
-		player PLAYER_WORMS = Player(11) // Number 12
-		player PLAYER_FLORA = Player(12) // Number 13
-
-		integer UNIT_WORM = 'h003'
-		integer UNIT_FIRE = 'h005'
-		integer UNIT_GRUBBY = 'h009'
-
-		integer ABILITY_LIGHT = 'A00H'
-		integer ABILITY_DISARM = 'A00K'
-		integer ABILITY_GLOW_LEFT = 'A01D'
-		integer ABILITY_GLOW_RIGHT = 'A01G'
-
-		integer ATTR_Q = 0
-		integer ATTR_W = 1
-		integer ATTR_E = 2
-		integer ATTR_R = 3
-
-		private integer KeyFood = StringHash("food")
+		private integer KeyFood  = StringHash("food")
 		private integer KeyFoodL = StringHash("foodl")
-		private integer KeyHeal = StringHash("heal")
+		private integer KeyHeal  = StringHash("heal")
 		private integer KeyHealL = StringHash("heall")
 
-		integer DAMAGE_SPELL = 1
-		integer DAMAGE_SPELLNOCOMBO = 2
+		// Array idx in Buff.j
+		public integer BUFF_BEPOWER
+		public integer BUFF_SONIK
 
-		integer TASK_BIOLOG = 1
-
+		// Array idx in Projectile.j
 		integer PROJECTILE_DAGGER
-		integer DASH_KATANA
+		integer PROJECTILE_DASH_KATANA
 		integer PROJECTILE_AXE
 		integer PROJECTILE_HUNGER
-
-		boolexpr FILTER_LIVING_WORMS
-		boolexpr FILTER_WOLF_UNSPAWNABLE
 	endglobals
 
-	private function filterLivingWorms takes nothing returns boolean
-		local unit u = GetFilterUnit()
-		local boolean result = (GetUnitTypeId(u) == UNIT_WORM or GetUnitTypeId(u) == UNIT_GRUBBY) and IsUnitAliveBJ(u)
-		set u = null
-		return result
-	endfunction
+	private function Init takes nothing returns nothing
+		// Spawner.j
+		call Spawner_DefineUnitBaseDamage(UNIT_WORM, 6, 2)
+		call Spawner_DefineUnitMaxHP(UNIT_WORM, 43, 6)
+		call Spawner_DefineUnitScale(UNIT_WORM, 0.3, 0.02)
+		call Spawner_DefineUnitColor(UNIT_WORM, 100, 100, 100, 0, -8, -8)
 
-	private function filterWolfUnspawnable takes nothing returns boolean
-		local player passive = Player(PLAYER_NEUTRAL_PASSIVE)
-		local unit u = GetFilterUnit()
-		local player owner = GetOwningPlayer(u)
-		local boolean result = owner != passive and owner != PLAYER_FLORA and IsUnitAliveBJ(u)
-		set passive = null
-		set u = null
-		set owner = null
-		return result
-	endfunction
+		call Spawner_DefineUnitBaseDamage(UNIT_WOLF, 2, 1)
+		call Spawner_DefineUnitMaxHP(UNIT_WOLF, 30, 6)
+		call Spawner_DefineUnitScale(UNIT_WOLF, 0.36, 0.02)
+		call Spawner_DefineUnitColor(UNIT_WOLF, 100, 100, 100, 0, -3, 0)
 
-	private function init takes nothing returns nothing
-		set PROJECTILE_DAGGER = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
-		set DASH_KATANA = InitDash(600, 1300, 60, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
-		set PROJECTILE_AXE = InitProjectile("Abilities\\Weapons\\RexxarMissile\\RexxarMissile.mdl", 50, 1, 2, 90, Combat_IN_RANGE_ENEMY_ATTACKABLE, 999)
-		set Projectile_TRIGGER_UPDATE_EVENT[PROJECTILE_AXE] = true
-		set FILTER_LIVING_WORMS = Condition(function filterLivingWorms)
-		set FILTER_WOLF_UNSPAWNABLE = Condition(function filterWolfUnspawnable)
-		set PROJECTILE_HUNGER= InitProjectile("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilMissile.mdl", 30, 1050, 700, 35, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
+		call Spawner_DefineUnitBaseDamage(UNIT_GRUBBY, 6, 1.5)
+		call Spawner_DefineUnitMaxHP(UNIT_GRUBBY, 37, 7)
+		call Spawner_DefineUnitScale(UNIT_GRUBBY, 0.36, 0.02)
+		call Spawner_DefineUnitColor(UNIT_GRUBBY, 50, 75, 100, 0, -4, 0)
+
+		// Buff.j
+		set BUFF_BEPOWER = Buff_RegisterBuff(BUFF_ID_BEPOWER, 'A00I', "bloodlust")
+		set BUFF_SONIK   = Buff_RegisterBuff(BUFF_ID_SONIK,   'A00L', "innerfire")
+
+		// Projectile.j
+		set PROJECTILE_DAGGER      = InitProjectile("Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl", 60, 1125, 1125, 40)
+		set PROJECTILE_DASH_KATANA = InitDash(600, 1300, 60, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1)
+		set PROJECTILE_AXE         = InitProjectileEx("Abilities\\Weapons\\RexxarMissile\\RexxarMissile.mdl", 50, 1, 2, 90, Combat_IN_RANGE_ENEMY_ATTACKABLE, 999, true)
+		set PROJECTILE_HUNGER      = InitProjectile("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilMissile.mdl", 30, 1050, 700, 35)
 	endfunction
 
 	// Worm API
+	// TODO: worm system? xd
 	function SetWormIdProps takes integer wormId, integer food, integer foodl, real heal, real heall returns nothing
 		call SaveInteger(udg_Worm_Hash, wormId, KeyFood, food)
 		call SaveInteger(udg_Worm_Hash, wormId, KeyFoodL, foodl)
@@ -94,10 +74,10 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 
 	// Displays warning texttag above unit
 	function UnitWarn takes unit u, string text returns texttag
-	    local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_WARNING)
-	    call SetTextTagVelocityBJ(tt, 60, 90)
-	    call SetTextTagFadeSpan(tt, 1.0, 3.0)
-	    return tt
+		local texttag tt = CreateTextTagUnitColor(text, u, 40.0, 9.0, TextTag_COLOR_WARNING)
+		call SetTextTagVelocityBJ(tt, 60, 90)
+		call SetTextTagFadeSpan(tt, 1.0, 3.0)
+		return tt
 	endfunction
 
 	function GetDamageTextColor takes unit source, unit target returns integer
@@ -192,7 +172,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 			return GetHeroLevel(u) + base
 		endif
 		return GetUnitLvl(u) + base
-    endfunction
+	endfunction
 
 	function InteractUnit takes unit u returns boolean
 		if IsUnitInGroup(u, udg_Interact_Group) then
@@ -316,6 +296,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 	// TIMER CALLBACKS //
 	/////////////////////
 
+	// TODO: remove them already?
 	public function Lantern_func takes nothing returns nothing
 		local integer keyName = StringHash("lantern")
 		

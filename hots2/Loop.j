@@ -8,7 +8,7 @@
 // - Loop_EventDone (Real)
 //
 
-// TODO: this should be a generic library
+// TODO: this should be a generic library, use arrays
 library Loop
 	globals
 		private integer KEY_UNIT = StringHash("unit")
@@ -17,9 +17,6 @@ library Loop
 		// You can map additional data to your unit here!
 		public hashtable hash = InitHashtable()
 		private integer count = 0
-		// Map-specific
-		public integer TAG_LANTERN = 0
-		public integer TAG_WOZNY = 1
 	endglobals
 
 	// Adds the unit to the loop for some time with the specified tag

@@ -1,9 +1,9 @@
 library Dummy
 
 	globals
-		public unit lastCaster = null
+		private unit mLastCaster = null
 
-		// Editable by the user
+		// TODO: should be set from outside
 		public integer DEFAULT_DUMMY_ID = 'h004'
 	endglobals
 
@@ -11,9 +11,9 @@ library Dummy
 		if not IsUnitAliveBJ(u) then
 			return false
 		endif
-		set lastCaster = CreateUnit(p, dummyId, GetUnitX(u), GetUnitY(u), 0.0)
-		call ShowUnit(lastCaster, false)
-		call UnitApplyTimedLife(lastCaster, 'BTLF', 1.0)
+		set mLastCaster = CreateUnit(p, dummyId, GetUnitX(u), GetUnitY(u), 0.0)
+		call ShowUnit(mLastCaster, false)
+		call UnitApplyTimedLife(mLastCaster, 'BTLF', 1.0)
 		return true
 	endfunction
 
@@ -22,9 +22,9 @@ library Dummy
 		if not CreateDummyAtUnit(GetOwningPlayer(target), DEFAULT_DUMMY_ID, target) then
 			return null
 		endif
-		call UnitAddAbility(lastCaster, abilityId)
-		call IssueTargetOrder(lastCaster, order, target)
-		return lastCaster
+		call UnitAddAbility(mLastCaster, abilityId)
+		call IssueTargetOrder(mLastCaster, order, target)
+		return mLastCaster
 	endfunction
 
 	// Specifies owner of the dummy
@@ -32,9 +32,9 @@ library Dummy
 		if not CreateDummyAtUnit(p, DEFAULT_DUMMY_ID, target) then
 			return null
 		endif
-		call UnitAddAbility(lastCaster, abilityId)
-		call IssueTargetOrder(lastCaster, order, target)
-		return lastCaster
+		call UnitAddAbility(mLastCaster, abilityId)
+		call IssueTargetOrder(mLastCaster, order, target)
+		return mLastCaster
 	endfunction
 
 	// Assumes that specified dummy already has the ability
@@ -42,8 +42,8 @@ library Dummy
 		if not CreateDummyAtUnit(p, dummyId, target) then
 			return null
 		endif
-		call IssueTargetOrder(lastCaster, order, target)
-		return lastCaster
+		call IssueTargetOrder(mLastCaster, order, target)
+		return mLastCaster
 	endfunction
 
 endlibrary

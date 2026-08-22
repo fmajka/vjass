@@ -5,36 +5,37 @@ library Utils initializer Init
 		integer array PLAYER_BLUE
 	endglobals
 
+	private function InitColor takes integer id, real r, real g, real b returns nothing
+		set PLAYER_RED[id] = r
+		set PLAYER_GREEN[id] = g
+		set PLAYER_BLUE[id] = b
+	endfunction
+
 	private function Init takes nothing returns nothing
-		//! textmacro InitColor takes ID, RED, GREEN, BLUE
-		set PLAYER_RED[$ID$] = $RED$
-		set PLAYER_GREEN[$ID$] = $GREEN$
-		set PLAYER_BLUE[$ID$] = $BLUE$
-		//! endtextmacro
-		//! runtextmacro InitColor("0", "255", "3", "3")
-		//! runtextmacro InitColor("1", "0", "66", "255")
-		//! runtextmacro InitColor("2", "28", "230", "185")
-		//! runtextmacro InitColor("3", "84", "0", "129")
-		//! runtextmacro InitColor("4", "255", "252", "0")
-		//! runtextmacro InitColor("5", "254", "138", "14")
-		//! runtextmacro InitColor("6", "32", "192", "0")
-		//! runtextmacro InitColor("7", "229", "91", "176")
-		//! runtextmacro InitColor("8", "149", "150", "151")
-		//! runtextmacro InitColor("9", "126", "191", "241")
-		//! runtextmacro InitColor("10", "16", "98", "70")
-		//! runtextmacro InitColor("11", "78", "42", "3")
-		//! runtextmacro InitColor("12", "155", "0", "0")
-		//! runtextmacro InitColor("13", "0", "0", "195")
-		//! runtextmacro InitColor("14", "0", "234", "255")
-		//! runtextmacro InitColor("15", "190", "0", "254")
-		//! runtextmacro InitColor("16", "235", "205", "135")
-		//! runtextmacro InitColor("17", "248", "164", "139")
-		//! runtextmacro InitColor("18", "191", "255", "128")
-		//! runtextmacro InitColor("19", "220", "185", "235")
-		//! runtextmacro InitColor("20", "80", "79", "85")
-		//! runtextmacro InitColor("21", "235", "240", "255")
-		//! runtextmacro InitColor("22", "0", "120", "30")
-		//! runtextmacro InitColor("23", "164", "111", "51")
+		call InitColor(0, 255, 3, 3)
+		call InitColor(1, 0, 66, 255)
+		call InitColor(2, 28, 230, 185)
+		call InitColor(3, 84, 0, 129)
+		call InitColor(4, 255, 252, 0)
+		call InitColor(5, 254, 138, 14)
+		call InitColor(6, 32, 192, 0)
+		call InitColor(7, 229, 91, 176)
+		call InitColor(8, 149, 150, 151)
+		call InitColor(9, 126, 191, 241)
+		call InitColor(10, 16, 98, 70)
+		call InitColor(11, 78, 42, 3)
+		call InitColor(12, 155, 0, 0)
+		call InitColor(13, 0, 0, 195)
+		call InitColor(14, 0, 234, 255)
+		call InitColor(15, 190, 0, 254)
+		call InitColor(16, 235, 205, 135)
+		call InitColor(17, 248, 164, 139)
+		call InitColor(18, 191, 255, 128)
+		call InitColor(19, 220, 185, 235)
+		call InitColor(20, 80, 79, 85)
+		call InitColor(21, 235, 240, 255)
+		call InitColor(22, 0, 120, 30)
+		call InitColor(23, 164, 111, 51)
 	endfunction
 
 	// Round real to integer
@@ -84,6 +85,34 @@ library Utils initializer Init
 	// Creates and immediatelly destroys effect attached to a target
 	function FlashEffectTarget takes string path, unit target, string attachment returns nothing
 		call DestroyEffect(AddSpecialEffectTarget(path, target, attachment))
+	endfunction
+
+	//////////////////////
+	// MATH API HELPERS //
+	//////////////////////
+
+	function DistanceBetweenUnits takes unit a, unit b returns real
+		local real xDiff = GetUnitX(b) - GetUnitX(a)
+		local real yDiff = GetUnitY(b) - GetUnitY(a)
+		return SquareRoot(xDiff*xDiff + yDiff*yDiff)
+	endfunction
+
+	function DistanceBetweenXY takes real x1, real y1, real x2, real y2 returns real
+		local real xDiff = x2 - x1
+		local real yDiff = y2 - y1
+		return SquareRoot(xDiff*xDiff + yDiff*yDiff)
+	endfunction
+
+	function AngleBetweenUnits takes unit a, unit b returns real
+		local real xDiff = GetUnitX(b) - GetUnitX(a)
+		local real yDiff = GetUnitY(b) - GetUnitY(a)
+		return bj_RADTODEG * Atan2(yDiff, xDiff)
+	endfunction
+
+	function AngleBetweenXY takes real x1, real y1, real x2, real y2 returns real
+		local real xDiff = x2 - x1
+		local real yDiff = y2 - y1
+		return bj_RADTODEG * Atan2(yDiff, xDiff)
 	endfunction
 
 endlibrary

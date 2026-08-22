@@ -1,4 +1,4 @@
-library Task requires HOTS
+library Task requires Hots
 	globals
 		public unit lastCrook
 		public quest lastTask
@@ -97,7 +97,7 @@ library Task requires HOTS
 		call SetTextTagColor(CrookAddXP(crook, 5 * reward), 128, 0, 255, 255)
 		call CrookAddGold(crook, reward, true)
 		call StopSoundBJ(gg_snd_QuestCompleted, false)
-    call StartSound(gg_snd_QuestCompleted)
+		call StartSound(gg_snd_QuestCompleted)
 		call DisplayTextToForce(GetPlayersAll(), "Zadanie wykonane: |cffffcc00" + title + "|r")
 		set giver = null
 	endfunction

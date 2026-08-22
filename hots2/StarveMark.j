@@ -1,4 +1,4 @@
-library StarveMark requires Combat, Utils, HOTS
+library StarveMark requires Combat, Utils, Hots
 	globals
 		public real CAST_TIME = 1.25
 		public real RADIUS = 90

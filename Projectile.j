@@ -28,17 +28,22 @@ library Projectile requires Combat
 		public boolean array arrDone
 	endglobals
 
-	function InitProjectile takes string path, real z, real dist, real speed, real r, boolexpr filter, integer hitCount returns integer
+	function InitProjectile takes string path, real z, real dist, real speed, real radius returns integer
+		call InitProjectileEx(path, z, dist, speed, radius, Combat_IN_RANGE_ENEMY_ATTACKABLE, 1, false)
+		return i
+	endfunction
+
+	function InitProjectileEx takes string path, real z, real dist, real speed, real radius, boolexpr filter, integer hitCount, boolean triggerUpdateEvent returns integer
 		local integer i = COUNT
 		set PATH[i] = path
 		set Z[i] = z
 		set DISTANCE[i] = dist
 		set SPEED[i] = speed
-		set RADIUS[i] = r
+		set RADIUS[i] = radius
 		set FILTER[i] = filter
 		set HIT_COUNT[i] = hitCount
+		set TRIGGER_UPDATE_EVENT[i] = triggerUpdateEvent
 		set IS_PROJECTILE[i] = true
-		set TRIGGER_UPDATE_EVENT[i] = false
 		set COUNT = COUNT + 1
 		return i
 	endfunction

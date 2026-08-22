@@ -135,13 +135,13 @@ library Announcer initializer init requires Audio
 			if p == GetLocalPlayer() then
 				if mAnnouncer[i] == GACHI then
 					call StopSound(gg_snd_gachiImpostor1, false, false)
-    			call PlaySoundOnUnitBJ(gg_snd_gachiImpostor1, 100, u)
+				call PlaySoundOnUnitBJ(gg_snd_gachiImpostor1, 100, u)
 				elseif mAnnouncer[i] == ADMIXON then
 					//call UnitPlay(u, gg_snd_admixImpostor1)
 				else
 					//call UnitPlay(u, gg_snd_defaultImpostor1)
 				endif
-        	endif
+			endif
 
 			set i = i + 1
 		endloop
