@@ -76,11 +76,17 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 
 	function GetWormHunger takes unit u returns integer
 		local integer id = GetUnitTypeId(u)
+		if not IsUnitAliveBJ(u) then
+			return 0
+		endif
 		return LoadInteger(udg_Worm_Hash, id, KeyFood) + GetUnitLvl(u) * LoadInteger(udg_Worm_Hash, id, KeyFoodL)
 	endfunction
 
 	function GetWormHeal takes unit u returns real
 		local integer id = GetUnitTypeId(u)
+		if not IsUnitAliveBJ(u) then
+			return 0.0
+		endif
 		return LoadReal(udg_Worm_Hash, id, KeyHeal) + GetUnitLvl(u) * LoadReal(udg_Worm_Hash, id, KeyHealL)
 	endfunction
 
@@ -88,6 +94,7 @@ library HOTS initializer init requires Utils, TextTag, Spawner, Projectile
 		local integer itemHandle = GetHandleId(wormItem)
 		local unit worm = LoadUnitHandle(udg_Worm_Hash, itemHandle, StringHash("unit"))
 		call FlushChildHashtable(udg_Worm_Hash, itemHandle)
+		call FlushChildHashtable(udg_Worm_Hash, GetHandleId(worm))
 		call RemoveUnit(worm)
 		set worm = null
 	endfunction
